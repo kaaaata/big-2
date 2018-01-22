@@ -1,0 +1,10 @@
+{
+  "name": "big2",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "deck-of-cards": "^0.1.8"
+  },
+  "scripts": {},
+  "devDependencies": {}
+}
