@@ -1,35 +1,44 @@
 class Big2Player {
-	constructor() {
+	constructor(name) {
+		this.name = name;
 		this.hand = [];
 		this.score = [];
+		this.algorithms = name === 'AI' ? new Big2AI() : null;
 	}
 };
 
 class Big2 {
 	constructor() {
 		this.logic = new Big2Logic();
-		this.you = new Big2Player();
-		this.opp = new Big2Player();
+		this.you = new Big2Player('you');
+		this.AI = new Big2Player('AI');
 		this.deck = Deck(); // no jokers
 		this.table = [];
-		this.turn = null;
+		this.turn = 'you';
 		this.$container = document.getElementById('container'); // sets reference to DOM
 
 		this.deck.shuffle();
 		this.deck.mount(this.$container); // add to DOM
 	}
 
-
-
-	quickAnimate(card, animateArgs, cb = () => {}) {
+	quickAnimate(card, animateArgs, onComplete = () => {}, onStart = () => {}) {
 		// shorthand to call card.prototype.animateTo()
+		const turn = this.turn; // deactivate input while animating
+
 		card.animateTo({
 			x: animateArgs.x,
 			y: animateArgs.y,
 			delay: animateArgs.delay,
 			duration: animateArgs.duration,
 			ease: animateArgs.ease, 
-			onComplete: () => cb(),
+			onStart: () => {
+				this.turn = null;
+				onStart();
+			},
+			onComplete: () => {
+				this.turn = turn;
+				onComplete();
+			},
 		});
 	}
 
@@ -51,23 +60,54 @@ class Big2 {
 			} else {
 				card.big2rank = card.rank * 10;
 			}
-			card.big2absoluteRank = card.big2rank + (3 - card.suit); // absolute Big-2 rank for sorting. (3 - card.suit) is Big-2-suit power
+			card.big2rank += (3 - card.suit); // absolute Big-2 rank for sorting. (3 - card.suit) is Big-2-suit power
 			if (card.suit === 0) card.unicodeSuit = '♠'; // unicode suits for prettiness
 			if (card.suit === 1) card.unicodeSuit = '♥';
 			if (card.suit === 2) card.unicodeSuit = '♣';
 			if (card.suit === 3) card.unicodeSuit = '♦';
 			card.active = false; // tracks whether a card in your hand is active
-			card.position = 'table'; // where's it at? 'table', 'yourHand', 'oppsHand'
-			card.$el.onclick = () => {
-				if (!['yourHand', 'oppsHand'].includes(card.position)) return;
-				card.active = !card.active;
-				animateArgs.x = card.x;
-				animateArgs.y = card.y + (card.active ? 20 : -20) * (card.position === 'yourHand' ? -1 : 1);
-				this.quickAnimate(card, animateArgs);
+			card.$el.onclick = () => { // click a card to prepare it for play
+				if (this.turn === 'you' && this.you.hand.map(card => card.big2rank).includes(card.big2rank)) {
+					card.active = !card.active;
+					animateArgs.x = card.x;
+					animateArgs.y = card.y + (card.active ? 20 : -20) * -1;
+					this.quickAnimate(card, animateArgs);
+				}
 			};
 		});	
 	}
 
+	checkWin() {
+		if (this.you.hand.length === 0) {
+			document.getElementById('scoreboard').innerHTML = 'You Win!';
+			this.turn = null;
+		} else if (this.AI.hand.length === 0) {
+			document.getElementById('scoreboard').innerHTML = 'You Lose!';
+			this.turn = null;
+		} else {
+			if (this.turn === 'you') {
+				console.log('you just finished turn. table length: ', this.table.length);
+				this.turn = 'opp';
+				this.AIplay.call(this,
+					this.AI.algorithms.generatePossibleHandsInOrderOfDesirability(
+						this.AI.hand,
+						this.logic.parseHand(this.table.length === 2 ? this.table[1].map(card => card.big2rank) : (this.table.length === 1 ? this.table[0].map(card => card.big2rank) : null)),
+						this.you.hand.length
+					), 
+					this.checkWin.bind(this)
+				); 
+			} else if (this.turn === 'opp') {
+				console.log('opp just finished turn. ');
+				this.turn = 'you';
+			} 
+		}
+	}
+
+	AIplay(possibleHandsInOrderOfDesirability, cb) {
+		console.log('the AI just played a hand! ', possibleHandsInOrderOfDesirability);
+		cb();
+	}
+	
 	renderHands() {
 		const animateArgs = {
 			x: null,
@@ -78,23 +118,23 @@ class Big2 {
 		};
 
 		// sort
-		this.you.hand = this.you.hand.sort((a, b) => (a.big2absoluteRank - b.big2absoluteRank));
-		this.opp.hand = this.opp.hand.sort((a, b) => (a.big2absoluteRank - b.big2absoluteRank));
+		this.you.hand = this.you.hand.sort((a, b) => (a.big2rank - b.big2rank));
+		this.AI.hand = this.AI.hand.sort((a, b) => (a.big2rank - b.big2rank));
 
 		// animate
 		for (let i = 0; i < 18; i++) {
-			[this.you.hand, this.opp.hand].forEach(hand => {
+			[this.you.hand, this.AI.hand].forEach(hand => {
 				if (hand[i]) {
 					animateArgs.x = window.innerWidth * -0.4 + 15 * i;
 					animateArgs.y = hand[i].y;
-					animateArgs.delay = i * 100;
+					animateArgs.delay = i * 20;
 					this.quickAnimate(hand[i], animateArgs, () => hand[i].$el.style.zIndex = i);
 				}
 			});
 		}
 	}
 
-	renderTable(fast = true) {
+	renderTable(fast = true, cb) {
 		const animateArgs = {
 			x: null,
 			y: 0,
@@ -111,14 +151,14 @@ class Big2 {
 				this.quickAnimate(this.table[i][j], animateArgs,
 					() => {
 						this.renderHands.call(this);
-						if (i === 2 && j === this.table[2].length - 1) this.clearOldHands.call(this);
+						if (i === 2 && j === this.table[2].length - 1) this.clearOldHands.call(this, cb);
 					}
 				);
 			}
 		}
 	}
 
-	clearOldHands() {
+	clearOldHands(cb) {
 		// all hands except most recently played 2 hands fall off table
 		const animateArgs = {
 			x: window.innerWidth * -0.7,
@@ -133,10 +173,13 @@ class Big2 {
 				animateArgs.delay = i * 20;
 				this.quickAnimate(this.table[0][i], animateArgs,
 					i === this.table[0].length - 1
-					? () => this.renderTable.call(this, false)
+					? () => {
+						this.renderTable.call(this, false);
+						this.table = this.table.slice(0, 2);
+						cb();
+					}
 					: () => {});
 			}
-			this.table = this.table.slice(1);
 		}
 	};	
 
@@ -149,15 +192,62 @@ class Big2 {
 			}
 		}
 
-		this.table.push(playedCards);
-		console.log('Played: ', this.logic.parseHand(playedCards.map(card => card.big2absoluteRank)));
-		this.renderTable();
+		const playedCardsParsed = this.logic.parseHand(playedCards.map(card => card.big2rank));
+		const tableCardsParsed = this.table.length === 0
+			? null
+			: this.logic.parseHand(this.table[(this.table[1] ? 1 : 0)].map(card => card.big2rank));
+
+		console.log('you played: ', playedCardsParsed);
+		console.log('table: ', tableCardsParsed);
+
+		// if your play is valid, and either it beats the table, or there is no table. 
+		if (playedCardsParsed && !tableCardsParsed ||
+			playedCardsParsed && tableCardsParsed &&
+			playedCardsParsed.combo === tableCardsParsed.combo && playedCardsParsed.power >= tableCardsParsed.power) {
+			console.log(playedCardsParsed);
+			this.table.push(playedCards);
+			this.renderTable(true, this.checkWin.bind(this));
+		} else {
+			console.log('Invalid Play', playedCards);
+			player.hand = player.hand.concat(playedCards.splice(0));
+			player.hand.filter(card => card.active).forEach((card) => card.$el.onclick());
+		}
+	}
+
+	pass(player) {
+		// all table goes away, turn changes
+		const animateArgs = {
+			x: window.innerWidth * -0.7,
+			y: 0,
+			delay: null, 
+			duration: 500,
+			ease: 'quartOut',
+		};
+
+		for (let i = 0; i < this.table.length; i++) {
+			for (let j = 0; j < this.table[i].length; j++) {
+				animateArgs.delay = i * 20;
+				this.quickAnimate(this.table[i][j], animateArgs,
+					i === this.table.length - 1 && j === this.table[i].length - 1
+					? () => {
+						this.table = [];
+						this.checkWin.call(this);
+					}
+					: () => {});
+			}
+		}
 	}
 
 	initGame() {
 		document.onkeyup = (e) => {
-			if (e.keyCode === 13 && this.turn === 'you') {
-				this.playActiveCards(this.you);
+			if (this.turn === 'you') {
+				if (e.keyCode === 13) {
+					console.log('pressed enter');
+					this.playActiveCards(this.you);
+				} else if (e.keyCode === 80) {
+					console.log('passed turn');
+					this.pass(this.you);
+				}
 			}
 		};
 
@@ -178,14 +268,12 @@ class Big2 {
 				animateArgs.y = window.innerHeight * -0.7;
 				animateArgs.delay = 1500 + i * 20;
 			} else if (i >= 18 && i < 36) {
-				this.opp.hand.push(this.deck.cards[i]);
-				this.deck.cards[i].position = 'oppsHand';
+				this.AI.hand.push(this.deck.cards[i]);
 				animateArgs.x = window.innerWidth * -0.4 + 15 * (i - 18);
 				animateArgs.y = window.innerHeight * -0.3;
 				animateArgs.delay = 1000 + i * 20;
 			} else if (i >= 0 && i < 18) {
 				this.you.hand.push(this.deck.cards[i]);
-				this.deck.cards[i].position = 'yourHand';
 				animateArgs.x = window.innerWidth * -0.4 + 15 * i;
 				animateArgs.y = window.innerHeight * 0.3;
 				animateArgs.delay = 1000 + i * 20;
@@ -196,7 +284,5 @@ class Big2 {
 				: () => {}
 			);
 		}
-
-		this.turn = 'you';
 	}
 };
