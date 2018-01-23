@@ -1,6 +1,5 @@
 const Game = new Big2();
 
-Game.initDeck();
 Game.initGame();
 
 /* to-do

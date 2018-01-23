@@ -1,24 +1,42 @@
+class Big2Player {
+	constructor(name) {
+		this.name = name;
+		this.hand = [];
+		this.score = 0;
+		this.algorithms = name === 'AI' ? new Big2AI() : null;
+	}
+};
+
 class Big2Logic {
 	constructor() {
+		// variables
 
+		// bind
+		this.parseHand = this.parseHand.bind(this);
+		this.pokerPower = this.pokerPower.bind(this);
+		this.allEqual = this.allEqual.bind(this);
+		this.allConsecutive = this.allConsecutive.bind(this);
 	}
 
-	allEqual(array) {
-		// all items in array equal? 
-		if (array.length <= 1) return true;
-		for (let i = 0; i < array.length - 1; i++) {
-			if (array[i] !== array[i + 1]) return false;
-		}
-		return true;
-	}
+	parseHand(hand) {
+		// take hand like [140, 141, 142, 143] i.e. [A♦, A♣, A♥, A♠], and return { combo: '5x', power: 143 }, false if invalid
+		if (!hand) return null;
 
-	allConsecutive(array) {
-		// all items in array consecutive?
-		if (array.length <= 1) return true;
-		for (let i = 0; i < array.length - 1; i++) {
-			if (array[i] !== array[i + 1] - 1) return false;
+		const ranks = hand.map(card => ~~(card / 10)); // rank only i.e. [14, 14, 14, 14]
+		const suits = hand.map(card => card % 10); // suit only i.e. [0, 1, 2, 3]
+		
+		if (hand.length <= 1) {
+			return { combo: '1x', power: hand[0] };
+		} else if (hand.length === 2 && this.allEqual(ranks)) {
+			return { combo: '2x', power: hand[1] };
+		} else if (hand.length === 3 && this.allEqual(ranks)) {
+			return { combo: '3x', power: hand[2] }
+		} else if (hand.length === 5) {
+			const power = this.pokerPower.call(this, hand, ranks, suits);
+			return power ? { combo: '5x', power: power } : false;
+		} else {
+			return false;
 		}
-		return true;
 	}
 
 	pokerPower(hand, ranks, suits) {
@@ -58,26 +76,22 @@ class Big2Logic {
 		}
 	}
 
-	parseHand(hand) {
-		// take hand like [140, 141, 142, 143] i.e. [A♦, A♣, A♥, A♠], and return { combo: '5x', power: 143 }, false if invalid
-
-		if (!hand) return null;
-
-		const ranks = hand.map(card => ~~(card / 10)); // rank only i.e. [14, 14, 14, 14]
-		const suits = hand.map(card => card % 10); // suit only i.e. [0, 1, 2, 3]
-		
-		if (hand.length <= 1) {
-			return { combo: '1x', power: hand[0] };
-		} else if (hand.length === 2 && this.allEqual(ranks)) {
-			return { combo: '2x', power: hand[1] };
-		} else if (hand.length === 3 && this.allEqual(ranks)) {
-			return { combo: '3x', power: hand[2] }
-		} else if (hand.length === 5) {
-			const power = this.pokerPower.call(this, hand, ranks, suits);
-			return power ? { combo: '5x', power: power } : false;
-		} else {
-			return false;
+	allEqual(array) {
+		// all items in array equal? 
+		if (array.length <= 1) return true;
+		for (let i = 0; i < array.length - 1; i++) {
+			if (array[i] !== array[i + 1]) return false;
 		}
+		return true;
+	}
+
+	allConsecutive(array) {
+		// all items in array consecutive?
+		if (array.length <= 1) return true;
+		for (let i = 0; i < array.length - 1; i++) {
+			if (array[i] !== array[i + 1] - 1) return false;
+		}
+		return true;
 	}
 };
 
