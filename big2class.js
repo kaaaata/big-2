@@ -31,6 +31,7 @@ class Big2 extends Big2Logic {
 	}
 
 	playActiveCards(player) {
+		console.log('playActiveCards called');
 		// play all activated cards (transfer from hand to table)
 		const playedCards = [];
 		for (let i = 0; i < player.hand.length; i++) {
@@ -59,13 +60,7 @@ class Big2 extends Big2Logic {
 
 	pass(player) {
 		// all table goes away, turn changes
-		const animateArgs = {
-			x: window.innerWidth * -0.7,
-			y: 0,
-			delay: null, 
-			duration: 500,
-			ease: 'quartOut',
-		};
+		const animateArgs = { x: window.innerWidth * -0.7, y: 0, delay: null, duration: 500, ease: 'quartOut', };
 
 		for (let i = 0; i < this.table.length; i++) {
 			for (let j = 0; j < this.table[i].length; j++) {
@@ -74,7 +69,7 @@ class Big2 extends Big2Logic {
 					i === this.table.length - 1 && j === this.table[i].length - 1
 					? () => {
 						this.table = [];
-						this.checkWin.call(this);
+						this.checkWin();
 					}
 					: () => {});
 			}
@@ -82,13 +77,7 @@ class Big2 extends Big2Logic {
 	}
 
 	renderHands() {
-		const animateArgs = {
-			x: null,
-			y: null,
-			delay: null,
-			duration: 500,
-			ease: 'quartOut',
-		};
+		const animateArgs = { x: null, y: null, delay: null, duration: 500, ease: 'quartOut', };
 
 		// sort
 		this.you.hand = this.you.hand.sort((a, b) => (a.big2rank - b.big2rank));
@@ -107,14 +96,9 @@ class Big2 extends Big2Logic {
 		}
 	}
 
-	renderTable(fast = true, cb = () => {}) {
-		const animateArgs = {
-			x: null,
-			y: 0,
-			delay: null, 
-			duration: 500,
-			ease: 'quartOut',
-		};
+	renderTable(fast = true, cb) {
+		console.log('renderTable called');
+		const animateArgs = { x: null, y: 0, delay: null, duration: 500, ease: 'quartOut', };
 
 		// add everything to the table 
 		for (let i = 0; i < this.table.length; i++) {
@@ -124,9 +108,9 @@ class Big2 extends Big2Logic {
 				this.quickAnimate(this.table[i][j], animateArgs,
 					() => {
 						this.renderHands();
-						if (i === 2) { // note to self: this keeps going forever!!
-							console.log('render table see table: ', this.table);
-							if (j === this.table[2].length - 1) this.clearOldHands(cb);
+						if (i === this.table.length - 1) {
+							if (i === 2 && j === this.table[2].length - 1) this.clearOldHands(cb);
+							if (i < 2 && j === this.table[i].length - 1) if (cb) cb(); 
 						}
 					}
 				);
@@ -135,14 +119,9 @@ class Big2 extends Big2Logic {
 	}
 
 	clearOldHands(cb) {
+		console.log('clearOldHands called');
 		// all hands except most recently played 2 hands fall off table
-		const animateArgs = {
-			x: window.innerWidth * -0.7,
-			y: 0,
-			delay: null, 
-			duration: 500,
-			ease: 'quartOut',
-		};
+		const animateArgs = { x: window.innerWidth * -0.7, y: 0, delay: null, duration: 500, ease: 'quartOut', };
 
 		if (this.table.length === 3) {
 			for (let i = 0; i < this.table[0].length; i++) {
@@ -150,8 +129,8 @@ class Big2 extends Big2Logic {
 				this.quickAnimate(this.table[0][i], animateArgs,
 					i === this.table[0].length - 1
 					? () => {
+						this.table = this.table.slice(1);
 						this.renderTable(false);
-						this.table = this.table.slice(0, 2);
 						cb(); // cb i.e. checkWin from playActiveCards gets executed here
 					}
 					: () => {});
@@ -160,6 +139,7 @@ class Big2 extends Big2Logic {
 	};	
 
 	checkWin() {
+		console.log('checkWin called');
 		if (this.you.hand.length === 0) {
 			document.getElementById('scoreboard').innerHTML = 'You Win!';
 			this.turn = null;
