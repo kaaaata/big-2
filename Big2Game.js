@@ -1,16 +1,19 @@
-class Big2 extends Big2Logic {
+class Big2Game extends Big2Logic {
 	constructor() {
 		super();
 
 		// variables
 		this.you = new Big2Player('you');
-		this.AI = new Big2Player('AI');
+    this.AI = new Big2Player('AI');
+    this.AIalgorithms = new Big2AI();
 		this.deck = Deck(); // no jokers
-		this.table = [];
+		this.table = []; 
 		this.gameActive = true; // game deactivated when cards are rendering or a player has won (and eventually when AI is moving?)
 		this.$container = document.getElementById('container'); // sets reference to DOM
 
-		// bind
+    // bind
+    this.quickAnimate = this.quickAnimate.bind(this);
+
 		this.playActiveCards = this.playActiveCards.bind(this);
 		this.wipeTable = this.wipeTable.bind(this);
 		this.renderHands = this.renderHands.bind(this);
@@ -18,7 +21,6 @@ class Big2 extends Big2Logic {
     this.clearOldHands = this.clearOldHands.bind(this);
     this.AIturn = this.AIturn.bind(this);
 		this.checkWin = this.checkWin.bind(this);
-		this.quickAnimate = this.quickAnimate.bind(this);
 		this.initGame = this.initGame.bind(this);
 	}
 
@@ -148,7 +150,7 @@ class Big2 extends Big2Logic {
 	};	
 
   AIturn() {
-    const AIwillPlay = this.AI.algorithms.selectBestHandToPlay.call(this,
+    const AIwillPlay = this.AIalgorithms.selectBestHandToPlay.call(this,
       this.AI.hand,
       this.parseHand(this.table.length === 2
         ? this.table[1].map(card => card.big2rank)
@@ -166,6 +168,7 @@ class Big2 extends Big2Logic {
       this.playActiveCards(this.AI);
     }
   }
+
 	checkWin(playerName) {
 		console.log(`checking if ${playerName} won`);
 		if (playerName === 'you') {
@@ -182,27 +185,6 @@ class Big2 extends Big2Logic {
 			}
 			console.log('AI just finished turn. ');	
 		}
-	}
-
-	quickAnimate(card, animateArgs, onComplete = () => {}, onStart = () => {}) {
-		// shorthand to call card.prototype.animateTo()
-		const gameActive = this.gameActive; // deactivate game while animating
-
-		card.animateTo({
-			x: animateArgs.x,
-			y: animateArgs.y,
-			delay: animateArgs.delay,
-			duration: animateArgs.duration,
-			ease: animateArgs.ease, 
-			onStart: () => {
-				this.gameActive = null;
-				onStart();
-			},
-			onComplete: () => {
-				this.gameActive = gameActive;
-				onComplete();
-			},
-		});
 	}
 
 	initGame() {		
@@ -250,7 +232,8 @@ class Big2 extends Big2Logic {
 			);
 		}
 
-		// modify each card object in this.deck to have Big-2-relevant properties
+    // modify each card object in this.deck to have Big-2-relevant properties
+    // properties are added instead of subclassing for simplicity...the deck_of_cards _card class is already great
 		animateArgs.delay = 0;
 		animateArgs.duration = 100;
 

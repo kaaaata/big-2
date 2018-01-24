@@ -1,9 +1,10 @@
-class Big2AI {
+class Big2AI extends Big2Logic {
   // abstract AI class. AI has 'memory', which stores all hand combinations it can play on its turn
   // selectBestHandToPlay() continually adds to 'memory', and then plays the least valuable (first) one
   // this type of algorithm is scalable - you can adjust which hand it plays based on urgency i.e. your hand length
 
 	constructor() {
+    super();
     this.memory = []; // format: [[hand], [hand], [hand]]
     this.hand = []; // same as AIhand in selectBestHandToPlay
     this.table = {}; // same as parsedTable in selectBestHandToPlay
@@ -41,11 +42,33 @@ class Big2AI {
   }
 
   addSingles() {
+    // 1. finish
     this.hand.forEach(card => this.memory.push([card.big2rank]));
   }
   addPairs() {
-    // in progress
+    // 1. filter out singles
+    const without_singles = this.hand.filter(card => this.rankCount(card, this.hand) >= 2);
+    console.log(without_singles);
+    // 2. partition by rank [[{}, {}], [{}, {}]]
+    const partitioned_ranks = [[without_singles[0]]];
+    for (let i = 1; i < without_singles.length; i++) {
+      if (partitioned_ranks[partitioned_ranks.length - 1][0].rank === without_singles[i].rank) {
+        partitioned_ranks[partitioned_ranks.length - 1].push(without_singles[i]);
+      } else {
+        partitioned_ranks.push([without_singles[i]]);
+      }
+    }
+    console.log(partitioned_ranks);
+    // 3. add all perms in each rank division
+    let all_pairs = [];
+    partitioned_ranks.forEach(partition => {
+      all_pairs = all_pairs.concat(this.allCombinations(partition, 2));
+    });
+    console.log(all_pairs);
+    // 4. finish
+    all_pairs.forEach(pair => this.memory.push(pair.map(card => card.big2rank)));
   }
+
 };
 
 /* POSSIBLE HANDS

@@ -1,19 +1,12 @@
-class Big2Player {
-	constructor(name) {
-		this.name = name;
-		this.hand = [];
-		this.score = 0;
-		this.algorithms = name === 'AI' ? new Big2AI() : null;
-	}
-};
-
 class Big2Logic {
 	constructor() {
 		// variables
 
 		// bind
-		this.parseHand = this.parseHand.bind(this);
+    this.parseHand = this.parseHand.bind(this);
 		this.pokerPower = this.pokerPower.bind(this);
+		this.allCombinations = this.allCombinations.bind(this);
+		this.rankCount = this.rankCount.bind(this);
 		this.allEqual = this.allEqual.bind(this);
 		this.allConsecutive = this.allConsecutive.bind(this);
 	}
@@ -37,6 +30,27 @@ class Big2Logic {
 		} else {
 			return false;
 		}
+  }
+  
+  quickAnimate(card, animateArgs, onComplete = () => {}, onStart = () => {}) {
+		// shorthand to call card.prototype.animateTo()
+		// const gameActive = this.gameActive; // deactivate game while animating (TO-DO)
+
+		card.animateTo({
+			x: animateArgs.x,
+			y: animateArgs.y,
+			delay: animateArgs.delay,
+			duration: animateArgs.duration,
+			ease: animateArgs.ease, 
+			onStart: () => {
+				// this.gameActive = null;
+				onStart();
+			},
+			onComplete: () => {
+				// this.gameActive = gameActive;
+				onComplete();
+			},
+		});
 	}
 
 	pokerPower(hand, ranks, suits) {
@@ -74,6 +88,32 @@ class Big2Logic {
 		} else {
 			return false;
 		}
+	}
+
+	allCombinations(a, size) {
+		// given an (a)rray of cards, return all combinations with 'size' length (not permutations)
+		// allCombinations([1, 2, 3], 2) => [[1, 2], [1, 3], [2, 3]]
+		// only needs to work on arrays length 4 or less (CONSTANT TIME!)
+		if (a.length <= 2) {
+			if (size === 2) return [a];
+		} else if (a.length === 3) {
+			if (size === 2) return [[a[0], a[1]], [a[0], a[2]], [a[1], a[2]]];
+			if (size === 3) return [a];
+		} else if (a.length === 4) {
+			if (size === 2) return [[a[0], a[1]], [a[0], a[2]], [a[0], a[3]], [a[1], a[2]], [a[1], a[3]], [a[2], a[3]]];
+			if (size === 3) return [[a[0], a[1], a[2]], [a[0], a[1], a[3]], [a[0], a[2], a[3]], [a[1], a[2], a[3]]];
+			if (size === 4) return [a];
+		}
+		return [];
+	 };
+
+	rankCount(card, hand) {
+		// how many cards in hand have card's rank?
+		let count = 0;
+		hand.forEach(item => {
+			count += item.rank === card.rank ? 1 : 0;
+		});
+		return count;
 	}
 
 	allEqual(array) {

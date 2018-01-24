@@ -6,7 +6,5 @@
     "deck-of-cards": "^0.1.8"
   },
   "scripts": {},
-  "devDependencies": {
-    
-  }
+  "devDependencies": {}
 }
