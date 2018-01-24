@@ -3,73 +3,81 @@ class Big2 extends Big2Logic {
 		super();
 
 		// variables
-		this.logic = new Big2Logic();
 		this.you = new Big2Player('you');
 		this.AI = new Big2Player('AI');
 		this.deck = Deck(); // no jokers
 		this.table = [];
-		this.turn = 'you';
+		this.gameActive = true; // game deactivated when cards are rendering or a player has won (and eventually when AI is moving?)
 		this.$container = document.getElementById('container'); // sets reference to DOM
 
 		// bind
 		this.playActiveCards = this.playActiveCards.bind(this);
-		this.pass = this.pass.bind(this);
+		this.wipeTable = this.wipeTable.bind(this);
 		this.renderHands = this.renderHands.bind(this);
 		this.renderTable = this.renderTable.bind(this);
-		this.clearOldHands = this.clearOldHands.bind(this);
+    this.clearOldHands = this.clearOldHands.bind(this);
+    this.AIturn = this.AIturn.bind(this);
 		this.checkWin = this.checkWin.bind(this);
 		this.quickAnimate = this.quickAnimate.bind(this);
 		this.initGame = this.initGame.bind(this);
 	}
 
-	waste2seconds() {
+	wasteTime(seconds) {
   	return new Promise(resolve => {
     	setTimeout(() => {
       	resolve('resolved');
-    	}, 2000);
+    	}, 1000 * seconds);
   	});
 	}
 
 	playActiveCards(player) {
-		console.log('playActiveCards called');
-		// play all activated cards (transfer from hand to table)
+		// play all activated cards, or pass (transfer from hand to table)
 		const playedCards = [];
 		for (let i = 0; i < player.hand.length; i++) {
 			if (player.hand[i].active) {
 				playedCards.push(player.hand.splice(i--, 1)[0]);
 			}
 		}
+		
+		const playedCardsParsed = this.parseHand(playedCards.map(card => card.big2rank));
+		const tableCardsParsed = this.table.length > 0 ? this.parseHand(this.table[(this.table[1] ? 1 : 0)].map(card => card.big2rank)) : { combo: null, power: 0 };
 
-		const playedCardsParsed = this.logic.parseHand(playedCards.map(card => card.big2rank));
-		const tableCardsParsed = this.table.length > 0 ? this.logic.parseHand(this.table[(this.table[1] ? 1 : 0)].map(card => card.big2rank)) : null;
+		console.log(`${player.name} played: ${playedCardsParsed} to table: ${tableCardsParsed}`);
+		
 
-		console.log('you played: ', playedCardsParsed);
-
-		// if your play is valid, and either it beats the table, or there is no table. 
-		if (playedCardsParsed && !tableCardsParsed ||
-			playedCardsParsed && tableCardsParsed &&
+		if (
+			// valid play? does it beat board or the board is empty? ok, play it.
+			playedCardsParsed && !tableCardsParsed.combo ||
+			playedCardsParsed && tableCardsParsed.combo &&
 			playedCardsParsed.combo === tableCardsParsed.combo && playedCardsParsed.power >= tableCardsParsed.power) {
 			this.table.push(playedCards);
-			this.renderTable(true, this.checkWin);
+			this.renderTable(true, () => this.checkWin(player.name));
 		} else {
+			// invalid play? put the cards back into the hand (deactivate)
 			console.log('Invalid Play', playedCards);
 			player.hand = player.hand.concat(playedCards.splice(0));
-			player.hand.filter(card => card.active).forEach((card) => card.$el.onclick());
+			player.hand.filter(card => card.active).forEach((card) => card.activate(player.name));
 		}
 	}
 
-	pass(player) {
-		// all table goes away, turn changes
+	wipeTable(cb) {
 		const animateArgs = { x: window.innerWidth * -0.7, y: 0, delay: null, duration: 500, ease: 'quartOut', };
 
+    // empty table = do callback and end
+    if (!this.table.length) {
+      setTimeout(cb, 500); // ok to use setTimeout because the table will only be empty on game start. (no stack)
+      return;
+    }
+
+    // not empty table: do algorithm.
 		for (let i = 0; i < this.table.length; i++) {
 			for (let j = 0; j < this.table[i].length; j++) {
-				animateArgs.delay = i * 20;
+				animateArgs.delay = 500 + i * 20;
 				this.quickAnimate(this.table[i][j], animateArgs,
 					i === this.table.length - 1 && j === this.table[i].length - 1
 					? () => {
 						this.table = [];
-						this.checkWin();
+						if (cb) cb();
 					}
 					: () => {});
 			}
@@ -97,7 +105,6 @@ class Big2 extends Big2Logic {
 	}
 
 	renderTable(fast = true, cb) {
-		console.log('renderTable called');
 		const animateArgs = { x: null, y: 0, delay: null, duration: 500, ease: 'quartOut', };
 
 		// add everything to the table 
@@ -107,10 +114,13 @@ class Big2 extends Big2Logic {
 				animateArgs.delay = fast ? j * 20 : j * 10;
 				this.quickAnimate(this.table[i][j], animateArgs,
 					() => {
-						this.renderHands();
 						if (i === this.table.length - 1) {
-							if (i === 2 && j === this.table[2].length - 1) this.clearOldHands(cb);
-							if (i < 2 && j === this.table[i].length - 1) if (cb) cb(); 
+							if (i === 2 && j === this.table[2].length - 1) {
+								this.clearOldHands(cb);
+							} else if (i < 2 && j === this.table[i].length - 1) {
+								if (cb) cb(); // cb i.e. checkWin from playActiveCards gets executed here
+								this.renderHands();
+							}
 						}
 					}
 				);
@@ -119,7 +129,6 @@ class Big2 extends Big2Logic {
 	}
 
 	clearOldHands(cb) {
-		console.log('clearOldHands called');
 		// all hands except most recently played 2 hands fall off table
 		const animateArgs = { x: window.innerWidth * -0.7, y: 0, delay: null, duration: 500, ease: 'quartOut', };
 
@@ -138,39 +147,46 @@ class Big2 extends Big2Logic {
 		}
 	};	
 
-	checkWin() {
-		console.log('checkWin called');
-		if (this.you.hand.length === 0) {
-			document.getElementById('scoreboard').innerHTML = 'You Win!';
-			this.turn = null;
-		} else if (this.AI.hand.length === 0) {
-			document.getElementById('scoreboard').innerHTML = 'AI Wins!';
-			this.turn = null;
-		} else {
-			if (this.turn === 'you') {
-				console.log('you just finished turn. hands on table: ', this.table.length);
-				this.turn = 'AI';
-				// AI DO SOMETHING
-				// this.AIplay.call(this,
-				// 	this.AI.algorithms.generatePossibleHandsInOrderOfDesirability(
-				// 		this.AI.hand,
-				// 		this.logic.parseHand(this.table.length === 2 ? this.table[1].map(card => card.big2rank) : (this.table.length === 1 ? this.table[0].map(card => card.big2rank) : null)),
-				// 		this.you.hand.length
-				// 	), 
-				// 	this.checkWin.bind(this)
-				// ); 
-				console.log('AI finished turn');
-				this.turn = 'you';
-			} else if (this.turn === 'AI') {
-				console.log('AI just finished turn. ');
-				this.turn = 'you';
-			} 
+  AIturn() {
+    const AIwillPlay = this.AI.algorithms.selectBestHandToPlay.call(this,
+      this.AI.hand,
+      this.parseHand(this.table.length === 2
+        ? this.table[1].map(card => card.big2rank)
+        : (this.table.length === 1 ? this.table[0].map(card => card.big2rank) : [0])),
+      this.you.hand.length
+    );
+    if (!AIwillPlay.length) {
+      console.log('AI passed. ');
+      this.wipeTable();
+    } else {
+      console.log('AI HAND HOLDS THIS RANKS: ', this.AI.hand.map(card => card.big2rank));
+      this.AI.hand.filter(card => AIwillPlay.includes(card.big2rank)).forEach((card) => card.activate('AI'));
+      console.log('AI hand activated these many cards: ', this.AI.hand.filter(card => card.active).length);
+      //const wasteTime = await this.wasteTime(1); // this line is for cool delay effect but it messes everything up
+      this.playActiveCards(this.AI);
+    }
+  }
+	checkWin(playerName) {
+		console.log(`checking if ${playerName} won`);
+		if (playerName === 'you') {
+			if (this.you.hand.length === 0) {
+				document.getElementById('scoreboard').innerHTML = 'You Win!';
+				this.gameActive = false;
+				return;
+			}
+			this.AIturn();
+		} else if (playerName === 'AI') {
+			if (this.AI.hand.length === 0) {
+				this.gameActive = false;
+				return;
+			}
+			console.log('AI just finished turn. ');	
 		}
 	}
 
 	quickAnimate(card, animateArgs, onComplete = () => {}, onStart = () => {}) {
 		// shorthand to call card.prototype.animateTo()
-		const turn = this.turn; // deactivate input while animating
+		const gameActive = this.gameActive; // deactivate game while animating
 
 		card.animateTo({
 			x: animateArgs.x,
@@ -179,11 +195,11 @@ class Big2 extends Big2Logic {
 			duration: animateArgs.duration,
 			ease: animateArgs.ease, 
 			onStart: () => {
-				this.turn = null;
+				this.gameActive = null;
 				onStart();
 			},
 			onComplete: () => {
-				this.turn = turn;
+				this.gameActive = gameActive;
 				onComplete();
 			},
 		});
@@ -193,13 +209,14 @@ class Big2 extends Big2Logic {
 		const animateArgs = { x: null, y: null, delay: null, duration: 500, ease: 'quartOut', };
 		// declare key events
 		document.onkeyup = (e) => {
-			if (this.turn === 'you') {
+			if (this.gameActive) {
 				if (e.keyCode === 13) {
 					console.log('you pressed enter');
 					this.playActiveCards(this.you);
 				} else if (e.keyCode === 80) {
-					console.log('you passed turn');
-					this.pass(this.you);
+					console.log('You passed. ');
+          this.you.hand.filter(card => card.active).forEach((card) => card.activate('you'));
+          this.wipeTable(this.AIturn);
 				}
 			}
 		};
@@ -228,7 +245,7 @@ class Big2 extends Big2Logic {
 			}
 			this.quickAnimate(this.deck.cards[i], animateArgs,
 				i === this.deck.cards.length - 1
-				? this.renderHands.bind(this)
+				? this.renderHands
 				: () => {}
 			);
 		}
@@ -245,13 +262,14 @@ class Big2 extends Big2Logic {
 			if (card.suit === 2) card.unicodeSuit = '♣';
 			if (card.suit === 3) card.unicodeSuit = '♦';
 			card.active = false; // tracks whether a card in your hand is active i.e. 'popped out'
+			card.activate = (playerName) => {
+				card.active = !card.active;
+				animateArgs.x = card.x;
+				animateArgs.y = card.y + (card.active ? 20 : -20) * (playerName === 'you' ? -1 : 1);
+				this.quickAnimate(card, animateArgs);
+			};
 			card.$el.onclick = () => { // click a card to prepare it for play
-				if (this.turn === 'you' && this.you.hand.map(card => card.big2rank).includes(card.big2rank)) {
-					card.active = !card.active;
-					animateArgs.x = card.x;
-					animateArgs.y = card.y + (card.active ? 20 : -20) * -1;
-					this.quickAnimate(card, animateArgs);
-				}
+				if (this.gameActive && this.you.hand.map(card => card.big2rank).includes(card.big2rank)) card.activate('you');
 			};
 		});	
 	}
