@@ -37,16 +37,19 @@ class Big2AI extends Big2Logic {
       if (1000 <= parsedTable.power) this.add5x('straight');
     }
 
+    // get rid of cards that do not beat the table
     this.memory = this.memory.filter(hand => this.parseHand(hand).power > parsedTable.power)
+
 		console.log('AI can play: ', this.memory);
 		return this.memory[0] || [];
   }
 
-  add1x2x3x4x(x) {
-    // add singles, pairs, or triplets to memory (x = 1, 2, or 3)
+  add1x2x3x4x(x, mode = 'memorize') {
+    // get all possible singles, pairs, triplets, or fours (x = 1, 2, 3, 4)
+    // mode = 'memorize': add to memory and return nothing. mode = 'return': return without adding to memory. 
     let allPossibilities = []; // not const to allow for concat utility
     if (x === 1) {
-      this.hand.forEach(card => this.memory.push([card.big2rank]));
+      allPossibilities = this.hand.map(card => [card]);
     } else {
       // 1. filter out singles, pairs, if necessary
       const filter_unplayables = this.hand.filter(card => this.rankCount(card, this.hand) >= x);
@@ -66,27 +69,41 @@ class Big2AI extends Big2Logic {
         allPossibilities = allPossibilities.concat(this.allCombinations(partition, x));
       });
       //console.log(allPossibilities);
-      // 4. finish
-      // 4x returned early instead of memorizing for addition of extra card
-      if (x === 4) return allPossibilities; 
-      allPossibilities.forEach(item => this.memory.push(item.map(card => card.big2rank)));
     }
+
+    // finish
+    if (mode === 'return') return allPossibilities;
+    allPossibilities.forEach(item => this.memory.push(item.map(card => card.big2rank)));
   }
 
   add5x(x) {
     // add straight flushes, four of a kinds, full houses, flushes, and straights to memory
+    const allPossibilities = [];    
     if (x === '4x') {
-      let fours = this.add1x2x3x4x(4); // like [[{}, {}, {}, {}]]
-      let allPossibilities = [];
+      // 1. get all fours
+      const fours = this.add1x2x3x4x(4, 'return'); // like [[{}, {}, {}, {}]]
+      // 2. for each four, add a single of every other rank
       fours.forEach(four => {
         this.hand.forEach(single => {
           if (single.rank !== four[0].rank) allPossibilities.push(four.concat([single]));
         });
       });
       console.log('all four possibilities: ', allPossibilities);
+      // 3. finish
       allPossibilities.forEach(item => this.memory.push(item.map(card => card.big2rank)));
-      
-      
+    } else if (x === 'full house') {
+      // 1. get all pairs and triplets
+      const pairs = this.add1x2x3x4x(2, 'return');
+      const triplets = this.add1x2x3x4x(3, 'return');
+      // 2. for each pair, add a triplet of every other rank
+      pairs.forEach(pair => {
+        triplets.forEach(triplet => {
+          if (triplet[0].rank !== pair[0].rank) allPossibilities.push(pair.concat(triplet));
+        });
+      });
+      console.log('all full house possibilities: ', allPossibilities);
+      // 3. finish
+      allPossibilities.forEach(item => this.memory.push(item.map(card => card.big2rank)));
     }
   }
 };
