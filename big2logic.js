@@ -54,23 +54,15 @@ class Big2Logic {
 	}
 
 	pokerPower(hand, ranks, suits) {
-		// take 5 card hand and return power value, false if invalid. note: 3 card hand can never exceed 100 power
-		// straight: +100 power
-		// flush: +200 power
-		// full house: +300 power
-		// four of a kind + 1: +400 power
-		// straight flush: +500 power
-		const isStraight = (array) => {
-			// valid Big-2 straight? includes 34562 (biggest), 345A2 (second-biggest)
-			if (
-				this.allConsecutive(array) ||
-				(this.allConsecutive(array.slice(0, 4)) && array[4] === 15) ||
-				(this.allConsecutive(array.slice(0, 3)) && array[4] === 15 && array[3] === 14)) {
-				return true;
-			}
-			return false;
-		};
-		const straight = isStraight(ranks);
+		// Inputs: hand [120, 121] ranks [12, 12] suits [1, 2]
+		// Output: power
+		// straight: +1000 power
+		// flush: +2000 power
+		// full house: +3000 power
+		// four of a kind + 1: +4000 power
+		// straight flush: +5000 power
+		console.log(ranks);
+		const straight = this.allConsecutive(ranks);
 		const flush = this.allEqual(suits);
 
 		if (straight && flush) {
@@ -93,7 +85,7 @@ class Big2Logic {
 	allCombinations(a, size) {
 		// given an (a)rray of cards, return all combinations with 'size' length (not permutations)
 		// allCombinations([1, 2, 3], 2) => [[1, 2], [1, 3], [2, 3]]
-		// only needs to work on arrays length 4 or less (CONSTANT TIME!)
+		// CONSTANT TIME for 2 <= a <= 2 !!
 		if (a.length <= 2) {
 			if (size === 2) return [a];
 		} else if (a.length === 3) {
@@ -103,6 +95,19 @@ class Big2Logic {
 			if (size === 2) return [[a[0], a[1]], [a[0], a[2]], [a[0], a[3]], [a[1], a[2]], [a[1], a[3]], [a[2], a[3]]];
 			if (size === 3) return [[a[0], a[1], a[2]], [a[0], a[1], a[3]], [a[0], a[2], a[3]], [a[1], a[2], a[3]]];
 			if (size === 4) return [a];
+		} else if (a.length >= 5 && size === 5) { // for flushes etc. 
+			// const all = [];
+			// a.forEach(item => {
+			// 	all.push()
+			// });
+
+			// [1, 2, 3, 4, 5, 6] => 
+			// [1, 2, 3, 4, 5]
+			// [1, 2, 3, 4, 6]
+			// [1, 2, 3, 5, 6]
+			// [1, 2, 4, 5, 6]
+			// [1, 3, 4, 5, 6]
+			// [2, 3, 4, 5, 6]
 		}
 		return [];
 	 };

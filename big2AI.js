@@ -104,6 +104,17 @@ class Big2AI extends Big2Logic {
       console.log('all full house possibilities: ', allPossibilities);
       // 3. finish
       allPossibilities.forEach(item => this.memory.push(item.map(card => card.big2rank)));
+    } else {
+        
+        // s = all s
+        // f = all f
+      if (x === 'straight') {
+        // all s not f
+      } else if (x === 'flush') {
+        // all f not s
+      } else if (x === 'straight flush') {
+        // all s that also f
+      }
     }
   }
 };
