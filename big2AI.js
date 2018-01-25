@@ -30,11 +30,11 @@ class Big2AI extends Big2Logic {
 		} else if (['1x', '2x', '3x'].includes(parsedTable.combo)) {
       this.add1x2x3x4x(parseInt(parsedTable.combo[0]));
     } else if (parsedTable.combo === '5x') {
-      if (5000 <= parsedTable.power) this.add5x('straight flush');
-      if (4000 <= parsedTable.power) this.add5x('4x');
-      if (3000 <= parsedTable.power) this.add5x('full house');
-      if (2000 <= parsedTable.power) this.add5x('flush');
-      if (1000 <= parsedTable.power) this.add5x('straight');
+      if (parsedTable.power < 2000) this.add5x('straight');
+      if (parsedTable.power < 3000) this.add5x('flush');
+      if (parsedTable.power < 4000) this.add5x('full house');
+      if (parsedTable.power < 5000) this.add5x('4x');
+      if (parsedTable.power < 6000) this.add5x('straight flush'); // AI will always add straight flush. 
     }
 
     // get rid of cards that do not beat the table
@@ -69,7 +69,7 @@ class Big2AI extends Big2Logic {
         allPossibilities = allPossibilities.concat(this.allCombinations(partition, x));
       });
       //console.log(allPossibilities);
-    }
+    } 
 
     // finish
     if (mode === 'return') return allPossibilities;
