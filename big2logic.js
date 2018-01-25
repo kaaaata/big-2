@@ -74,17 +74,17 @@ class Big2Logic {
 		const flush = this.allEqual(suits);
 
 		if (straight && flush) {
-			return 500 + ((ranks[4] === 15 && ranks[3] === 14) ? hand[3] : hand[4]); // mathematically simplified;
+			return 5000 + ((ranks[4] === 15 && ranks[3] === 14) ? hand[3] : hand[4]); // mathematically simplified;
 		} else if (this.allEqual(ranks.slice(0, 4)) || this.allEqual(ranks.slice(1))) {
-			return 400 + (this.allEqual(ranks.slice(0, 4)) ? ranks[0] : ranks[4]);
+			return 4000 + (this.allEqual(ranks.slice(0, 4)) ? ranks[0] : ranks[4]);
 		} else if (
 			this.allEqual(ranks.slice(0, 3)) && this.allEqual(ranks.slice(3)) || 
 			this.allEqual(ranks.slice(0, 2)) && this.allEqual(ranks.slice(2))) {
-			return 300 + (this.allEqual(ranks.slice(0, 3)) ? hand[2] : hand[4]);
+			return 3000 + (this.allEqual(ranks.slice(0, 3)) ? hand[2] : hand[4]);
 		} else if (flush) {
-			return 200 + ranks[4];
+			return 2000 + ranks[4];
 		} else if (straight) {
-			return 100 + ((ranks[4] === 15 && ranks[3] === 14) ? hand[3] : hand[4]);
+			return 1000 + ((ranks[4] === 15 && ranks[3] === 14) ? hand[3] : hand[4]);
 		} else {
 			return false;
 		}

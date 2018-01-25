@@ -203,10 +203,38 @@ class Big2Game extends Big2Logic {
 			}
 		};
 
-		// deal cards
-		this.deck.shuffle();
-		this.deck.mount(this.$container); // add to DOM
+		// add to DOM
+		this.deck.mount(this.$container);
 
+		// deal cards
+		
+		// // CUSTOMIZED DEALS FOR TESTING
+		// for (let i = 0; i < this.deck.cards.length; i++) {
+		// 	this.deck.cards[i].setSide('front');
+		// 	if (this.deck.cards[i].rank >= 9) {
+		// 		// extra cards exit the screen
+		// 		animateArgs.x = this.deck.cards[i].x;
+		// 		animateArgs.y = window.innerHeight * -0.7;
+		// 		animateArgs.delay = 1500 + i * 20;
+		// 	} else if (this.deck.cards[i].rank >= 5 && this.deck.cards[i].rank < 9) {
+		// 		this.AI.hand.push(this.deck.cards[i]);
+		// 		animateArgs.x = window.innerWidth * -0.4 + 15 * (i - 18);
+		// 		animateArgs.y = window.innerHeight * -0.3;
+		// 		animateArgs.delay = 1000 + i * 20;
+		// 	} else if (this.deck.cards[i].rank < 5) {
+		// 		this.you.hand.push(this.deck.cards[i]);
+		// 		animateArgs.x = window.innerWidth * -0.4 + 15 * i;
+		// 		animateArgs.y = window.innerHeight * 0.3;
+		// 		animateArgs.delay = 1000 + i * 20;
+		// 	}
+		// 	this.quickAnimate(this.deck.cards[i], animateArgs,
+		// 		i === this.deck.cards.length - 1
+		// 		? this.renderHands
+		// 		: () => {}
+		// 	);
+		// }
+		
+		this.deck.shuffle();
 		for (let i = 0; i < this.deck.cards.length; i++) {
 			this.deck.cards[i].setSide('front');
 			if (i >= 36) {
@@ -231,6 +259,8 @@ class Big2Game extends Big2Logic {
 				: () => {}
 			);
 		}
+
+		
 
     // modify each card object in this.deck to have Big-2-relevant properties
     // properties are added instead of subclassing for simplicity...the deck_of_cards _card class is already great
