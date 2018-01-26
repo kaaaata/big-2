@@ -12,8 +12,8 @@ class Big2Logic {
 	}
 
 	parseHand(hand) {
-		// take hand like [140, 141, 142, 143] i.e. [A♦, A♣, A♥, A♠], and return { combo: '5x', power: 143 }, false if invalid
-		if (!hand) return null;
+		// take hand like [140, 141, 142, 143] i.e. [A♦, A♣, A♥, A♠], and return { combo: '5x', power: 143 }, null if invalid
+		if (!hand[0]) return null;
 
 		const ranks = hand.map(card => ~~(card / 10)); // rank only i.e. [14, 14, 14, 14]
 		const suits = hand.map(card => card % 10); // suit only i.e. [0, 1, 2, 3]
@@ -28,7 +28,7 @@ class Big2Logic {
 			const power = this.pokerPower.call(this, hand, ranks, suits);
 			return power ? { combo: '5x', power: power } : false;
 		} else {
-			return false;
+			return null;
 		}
   }
   
@@ -85,7 +85,7 @@ class Big2Logic {
 	allCombinations(a, size) {
 		// given an (a)rray of cards, return all combinations with 'size' length (not permutations)
 		// allCombinations([1, 2, 3], 2) => [[1, 2], [1, 3], [2, 3]]
-		// CONSTANT TIME for 2 <= a <= 2 !!
+		// CONSTANT TIME for 2 <= a <= 4 !!
 		if (a.length <= 2) {
 			if (size === 2) return [a];
 		} else if (a.length === 3) {
@@ -95,19 +95,6 @@ class Big2Logic {
 			if (size === 2) return [[a[0], a[1]], [a[0], a[2]], [a[0], a[3]], [a[1], a[2]], [a[1], a[3]], [a[2], a[3]]];
 			if (size === 3) return [[a[0], a[1], a[2]], [a[0], a[1], a[3]], [a[0], a[2], a[3]], [a[1], a[2], a[3]]];
 			if (size === 4) return [a];
-		} else if (a.length >= 5 && size === 5) { // for flushes etc. 
-			// const all = [];
-			// a.forEach(item => {
-			// 	all.push()
-			// });
-
-			// [1, 2, 3, 4, 5, 6] => 
-			// [1, 2, 3, 4, 5]
-			// [1, 2, 3, 4, 6]
-			// [1, 2, 3, 5, 6]
-			// [1, 2, 4, 5, 6]
-			// [1, 3, 4, 5, 6]
-			// [2, 3, 4, 5, 6]
 		}
 		return [];
 	 };
@@ -138,6 +125,8 @@ class Big2Logic {
 		}
 		return true;
 	}
+
+
 };
 
 /* POSSIBLE HANDS

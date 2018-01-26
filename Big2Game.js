@@ -7,6 +7,7 @@ class Big2Game extends Big2Logic {
     this.AI = new Big2Player('AI');
     this.AIalgorithms = new Big2AI();
 		this.deck = Deck(); // no jokers
+		console.log('Deck: ', this.deck);
 		this.table = []; 
 		this.gameActive = true; // game deactivated when cards are rendering or a player has won (and eventually when AI is moving?)
 		this.$container = document.getElementById('container'); // sets reference to DOM
@@ -180,6 +181,7 @@ class Big2Game extends Big2Logic {
 			this.AIturn();
 		} else if (playerName === 'AI') {
 			if (this.AI.hand.length === 0) {
+				document.getElementById('scoreboard').innerHTML = 'AI Wins!';
 				this.gameActive = false;
 				return;
 			}
@@ -259,9 +261,7 @@ class Big2Game extends Big2Logic {
 				: () => {}
 			);
 		}
-
 		
-
     // modify each card object in this.deck to have Big-2-relevant properties
     // properties are added instead of subclassing for simplicity...the deck_of_cards _card class is already great
 		animateArgs.delay = 0;

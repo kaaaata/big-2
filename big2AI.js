@@ -11,6 +11,7 @@ class Big2AI extends Big2Logic {
 
     this.selectBestHandToPlay = this.selectBestHandToPlay.bind(this);
     this.add1x2x3x4x = this.add1x2x3x4x.bind(this);
+    this.add5x = this.add5x.bind(this);
 	}
 
 	selectBestHandToPlay(AIhand, parsedTable, yourHandLength) { 
@@ -21,12 +22,28 @@ class Big2AI extends Big2Logic {
     this.hand = AIhand;
     this.table = parsedTable;
 
-		console.log(`AI hand cards ${AIhand.length} | table ${parsedTable} | player hand length ${yourHandLength}`);
+		console.log(`AI cards: ${AIhand.length} | table ${parsedTable ? parsedTable.combo : 'EMPTY'} | player cards ${yourHandLength}`);
 
 		// lets assume AI will play the next smallest combo that beats table. 
 		if (!parsedTable) {
-			// lets assume for now that empty table = AI will play smallest single card. 
+			// AI will play these hands in order on an empty table.
+      this.add5x('straight');
+      console.log(`AI can play # hands: ${this.memory.length}`);
+      this.add5x('flush');
+      console.log(`AI can play # hands: ${this.memory.length}`);
+      this.add1x2x3x4x(2);
+      console.log(`AI can play # hands: ${this.memory.length}`);
+      this.add1x2x3x4x(3);
+      console.log(`AI can play # hands: ${this.memory.length}`);
       this.add1x2x3x4x(1);
+      console.log(`AI can play # hands: ${this.memory.length}`);
+      this.add5x('full house');
+      console.log(`AI can play # hands: ${this.memory.length}`);
+      this.add5x('4x');
+      console.log(`AI can play # hands: ${this.memory.length}`);
+      this.add5x('straight flush');
+      console.log(`AI can play # hands: ${this.memory.length}`);
+      console.log('AI can play hands: ', this.memory);
 		} else if (['1x', '2x', '3x'].includes(parsedTable.combo)) {
       this.add1x2x3x4x(parseInt(parsedTable.combo[0]));
     } else if (parsedTable.combo === '5x') {
@@ -37,8 +54,10 @@ class Big2AI extends Big2Logic {
       if (parsedTable.power < 6000) this.add5x('straight flush'); // AI will always add straight flush. 
     }
 
-    // get rid of cards that do not beat the table
-    this.memory = this.memory.filter(hand => this.parseHand(hand).power > parsedTable.power)
+    // get rid of cards that do not beat the table and sort the remainder from min-max
+    console.log('memory before filtering: ', this.memory);
+    this.memory = this.memory.filter(hand => this.parseHand(hand).power > (parsedTable ? parsedTable.power : 0));
+    //this.memory = this.memory.filter(hand => this.parseHand(hand).power > (parsedTable ? parsedTable.power : 0));
 
 		console.log('AI can play: ', this.memory);
 		return this.memory[0] || [];
@@ -53,7 +72,6 @@ class Big2AI extends Big2Logic {
     } else {
       // 1. filter out singles, pairs, if necessary
       const filter_unplayables = this.hand.filter(card => this.rankCount(card, this.hand) >= x);
-      //console.log(filter_unplayables);
       // 2. partition by rank [[{}, {}], [{}, {}]]
       const partition_ranks = [[filter_unplayables[0]]];
       for (let i = 1; i < filter_unplayables.length; i++) {
@@ -63,22 +81,22 @@ class Big2AI extends Big2Logic {
           partition_ranks.push([filter_unplayables[i]]);
         }
       }
-      //console.log(partition_ranks);
       // 3. add all perms in each rank division
       partition_ranks.forEach(partition => {
         allPossibilities = allPossibilities.concat(this.allCombinations(partition, x));
       });
-      //console.log(allPossibilities);
     } 
 
     // finish
+    allPossibilities = allPossibilities.sort((a, b) => this.parseHand(a).power - this.parseHand(b).power);
     if (mode === 'return') return allPossibilities;
     allPossibilities.forEach(item => this.memory.push(item.map(card => card.big2rank)));
   }
 
-  add5x(x) {
-    // add straight flushes, four of a kinds, full houses, flushes, and straights to memory
-    const allPossibilities = [];    
+  add5x(x, mode = 'memorize') {
+    // get straight flushes, four of a kinds, full houses, flushes, and straights
+    // mode = 'memorize': add to memory and return nothing. mode = 'return': return without adding to memory. 
+    let allPossibilities = [];    
     if (x === '4x') {
       // 1. get all fours
       const fours = this.add1x2x3x4x(4, 'return'); // like [[{}, {}, {}, {}]]
@@ -90,6 +108,7 @@ class Big2AI extends Big2Logic {
       });
       console.log('all four possibilities: ', allPossibilities);
       // 3. finish
+
       allPossibilities.forEach(item => this.memory.push(item.map(card => card.big2rank)));
     } else if (x === 'full house') {
       // 1. get all pairs and triplets
@@ -105,17 +124,32 @@ class Big2AI extends Big2Logic {
       // 3. finish
       allPossibilities.forEach(item => this.memory.push(item.map(card => card.big2rank)));
     } else {
-        
-        // s = all s
-        // f = all f
+      // 1. generate flushes and straights without returning
+      const flushes = [];
+      // generate all flushes with unique max rank with lowest 4 as fodder
+      [3, 2, 1, 0].forEach(suit => {
+        const filter_suit = this.hand.filter(card => card.suit === suit);
+        if (filter_suit.length < 5) return;
+        filter_suit.slice(4).forEach(flushMaxCard => flushes.push(filter_suit.slice(0, 4).concat([flushMaxCard])));
+      });
+      console.log('all flush possibilities: ', flushes);
+      
+      // 2. use flushes and straights arrays to derive straight, flush, and straight flush
+      const straights = [];
+      // ;P
       if (x === 'straight') {
-        // all s not f
+        allPossibilities = straights;
       } else if (x === 'flush') {
-        // all f not s
+        allPossibilities = flushes;
       } else if (x === 'straight flush') {
-        // all s that also f
+        allPossibilities = allPossibilities.concat(straights.filter(straight => this.allEqual(straight.map(card => card.suit))));
       }
     }
+
+    // finish
+    allPossibilities = allPossibilities.sort((a, b) => this.parseHand(a).power - this.parseHand(b).power);
+    if (mode === 'return') return allPossibilities;
+    allPossibilities.forEach(item => this.memory.push(item.map(card => card.big2rank)));
   }
 };
 
