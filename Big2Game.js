@@ -9,6 +9,7 @@ class Big2Game extends Big2Logic {
 		this.deck = Deck(); // no jokers
 		console.log('Deck: ', this.deck);
 		this.table = []; 
+		this.handSort = 'ranks';
 		this.gameActive = true; // game deactivated when cards are rendering or a player has won (and eventually when AI is moving?)
 		this.$container = document.getElementById('container'); // sets reference to DOM
 
@@ -87,12 +88,23 @@ class Big2Game extends Big2Logic {
 		}
 	}
 
-	renderHands() {
+	renderHands(handSort = 'ranks') {
 		const animateArgs = { x: null, y: null, delay: null, duration: 500, ease: 'quartOut', };
 
 		// sort
-		this.you.hand = this.you.hand.sort((a, b) => (a.big2rank - b.big2rank));
-		this.AI.hand = this.AI.hand.sort((a, b) => (a.big2rank - b.big2rank));
+		if (handSort === 'ranks') {
+			this.you.hand = this.you.hand.sort((a, b) => (a.big2rank - b.big2rank));
+			this.AI.hand = this.AI.hand.sort((a, b) => (a.big2rank - b.big2rank));
+		} else if (handSort === 'suits') {
+			let youNewHand = [];
+			let AINewHand = [];
+			[3, 2, 1, 0].forEach(suit => {
+				youNewHand = youNewHand.concat(this.you.hand.sort((a, b) => (b.suit - a.suit)).filter(card => card.suit === suit).sort((a, b) => (a.big2rank - b.big2rank)));
+				AINewHand = AINewHand.concat(this.AI.hand.sort((a, b) => (b.suit - a.suit)).filter(card => card.suit === suit).sort((a, b) => (a.big2rank - b.big2rank)));
+			});
+			this.you.hand = youNewHand;
+			this.AI.hand = AINewHand;
+		}
 
 		// animate
 		for (let i = 0; i < 18; i++) {
@@ -122,7 +134,7 @@ class Big2Game extends Big2Logic {
 								this.clearOldHands(cb);
 							} else if (i < 2 && j === this.table[i].length - 1) {
 								if (cb) cb(); // cb i.e. checkWin from playActiveCards gets executed here
-								this.renderHands();
+								this.renderHands(this.handSort);
 							}
 						}
 					}
@@ -201,6 +213,10 @@ class Big2Game extends Big2Logic {
 					console.log('You passed. ');
           this.you.hand.filter(card => card.active).forEach((card) => card.activate('you'));
           this.wipeTable(this.AIturn);
+				} else if (e.keyCode === 83) {
+					this.handSort = this.handSort === 'ranks' ? 'suits' : 'ranks';
+					console.log('sorting based on: ', this.handSort);
+					this.renderHands(this.handSort);
 				}
 			}
 		};
@@ -257,7 +273,7 @@ class Big2Game extends Big2Logic {
 			}
 			this.quickAnimate(this.deck.cards[i], animateArgs,
 				i === this.deck.cards.length - 1
-				? this.renderHands
+				? () => this.renderHands(this.handSort)
 				: () => {}
 			);
 		}
