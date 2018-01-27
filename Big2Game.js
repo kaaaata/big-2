@@ -91,7 +91,7 @@ class Big2Game extends Big2Logic {
 	renderHands(handSort = 'ranks') {
 		const animateArgs = { x: null, y: null, delay: null, duration: 500, ease: 'quartOut', };
 
-		// sort
+		// sort by rank or suit
 		if (handSort === 'ranks') {
 			this.you.hand = this.you.hand.sort((a, b) => (a.big2rank - b.big2rank));
 			this.AI.hand = this.AI.hand.sort((a, b) => (a.big2rank - b.big2rank));
@@ -126,7 +126,7 @@ class Big2Game extends Big2Logic {
 		for (let i = 0; i < this.table.length; i++) {
 			for (let j = 0; j < this.table[i].length; j++) {
 				animateArgs.x = window.innerWidth * -0.4 + 15 * j + 155 * i;
-				animateArgs.delay = fast ? j * 20 : j * 10;
+				animateArgs.delay = j * (fast ? 20 : 10);
 				this.quickAnimate(this.table[i][j], animateArgs,
 					() => {
 						if (i === this.table.length - 1) {
@@ -259,7 +259,7 @@ class Big2Game extends Big2Logic {
 				// extra cards exit the screen
 				animateArgs.x = this.deck.cards[i].x;
 				animateArgs.y = window.innerHeight * -0.7;
-				animateArgs.delay = 1500 + i * 20;
+				animateArgs.delay = 1000 + i * 20;
 			} else if (i >= 18 && i < 36) {
 				this.AI.hand.push(this.deck.cards[i]);
 				animateArgs.x = window.innerWidth * -0.4 + 15 * (i - 18);

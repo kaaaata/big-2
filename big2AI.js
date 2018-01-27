@@ -71,8 +71,9 @@ class Big2AI extends Big2Logic {
     if (x === 1) {
       allPossibilities = this.hand.map(card => [card]);
     } else {
-      // 1. filter out singles, pairs, if necessary
+      // 1. filter out singles, pairs, if necessary. 
       const filter_unplayables = this.hand.filter(card => this.rankCount(card, this.hand) >= x);
+      if (!filter_unplayables.length) return []; // end immediately if no playable hands
       // 2. partition by rank [[{}, {}], [{}, {}]]
       const partition_ranks = [[filter_unplayables[0]]];
       for (let i = 1; i < filter_unplayables.length; i++) {
@@ -97,6 +98,8 @@ class Big2AI extends Big2Logic {
   add5x(x, mode = 'memorize') {
     // get straight flushes, four of a kinds, full houses, flushes, and straights
     // mode = 'memorize': add to memory and return nothing. mode = 'return': return without adding to memory. 
+    if (this.hand.length < 5) return []; // end immediately if no playable hands
+
     let allPossibilities = [];    
     if (x === '4x') {
       // 1. get all fours
@@ -109,7 +112,6 @@ class Big2AI extends Big2Logic {
       });
       console.log('all four possibilities: ', allPossibilities);
       // 3. finish
-
       allPossibilities.forEach(item => this.memory.push(item.map(card => card.big2rank)));
     } else if (x === 'full house') {
       // 1. get all pairs and triplets
@@ -155,7 +157,6 @@ class Big2AI extends Big2Logic {
   }
 
   allStraights(hand) {
-    debugger;
     // take hand like [{}, {}] and return all possible straights like [[{}, ... , {}], [{}, ... , {}]] 
     let ret = [];
     const ranks = hand.map(card => (card.big2rankWithoutSuit));
