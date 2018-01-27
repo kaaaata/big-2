@@ -26,3 +26,4 @@ To-do:
 -Deploy to web
 -Add timer
 -Add optional auto-win animation sequence if your smallest card is greater than the opponent's greatest card
+
