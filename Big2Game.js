@@ -285,7 +285,8 @@ class Big2Game extends Big2Logic {
 
 		this.deck.cards.forEach(card => {
 			// create Big-2 specific ranks. (3 - card.suit) is suit power. they are x10 to avoid floating point arithmetic errors.
-			card.big2rank = (card.rank === 1 ? 140 : (card.rank === 2 ? 150 : card.rank * 10)) + (3 - card.suit);
+			card.big2rankWithoutSuit = card.rank === 1 ? 140 : (card.rank === 2 ? 150 : card.rank * 10);
+			card.big2rank = card.big2rankWithoutSuit + (3 - card.suit);
 			if (card.suit === 0) card.unicodeSuit = '♠'; // unicode suits for prettiness (only used in console)
 			if (card.suit === 1) card.unicodeSuit = '♥';
 			if (card.suit === 2) card.unicodeSuit = '♣';

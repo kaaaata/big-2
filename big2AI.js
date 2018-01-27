@@ -12,6 +12,7 @@ class Big2AI extends Big2Logic {
     this.selectBestHandToPlay = this.selectBestHandToPlay.bind(this);
     this.add1x2x3x4x = this.add1x2x3x4x.bind(this);
     this.add5x = this.add5x.bind(this);
+    this.allStraights = this.allStraights.bind(this);
 	}
 
 	selectBestHandToPlay(AIhand, parsedTable, yourHandLength) { 
@@ -29,11 +30,11 @@ class Big2AI extends Big2Logic {
 			// AI will play these hands in order on an empty table.
       this.add5x('straight');
       console.log(`AI can play # hands: ${this.memory.length}`);
-      this.add5x('flush');
-      console.log(`AI can play # hands: ${this.memory.length}`);
       this.add1x2x3x4x(2);
       console.log(`AI can play # hands: ${this.memory.length}`);
       this.add1x2x3x4x(3);
+      console.log(`AI can play # hands: ${this.memory.length}`);
+      this.add5x('flush');
       console.log(`AI can play # hands: ${this.memory.length}`);
       this.add1x2x3x4x(1);
       console.log(`AI can play # hands: ${this.memory.length}`);
@@ -124,19 +125,20 @@ class Big2AI extends Big2Logic {
       // 3. finish
       allPossibilities.forEach(item => this.memory.push(item.map(card => card.big2rank)));
     } else {
-      // 1. generate flushes and straights without returning
+      // generate flushes and straights without returning. the intersection of these will be straight flushes
+      // 1. generate all flushes with unique max rank with lowest 4 as fodder
       const flushes = [];
-      // generate all flushes with unique max rank with lowest 4 as fodder
       [3, 2, 1, 0].forEach(suit => {
         const filter_suit = this.hand.filter(card => card.suit === suit);
         if (filter_suit.length < 5) return;
         filter_suit.slice(4).forEach(flushMaxCard => flushes.push(filter_suit.slice(0, 4).concat([flushMaxCard])));
       });
       console.log('all flush possibilities: ', flushes);
+
+      // 2. generate all straights
+      const straights = this.allStraights(this.hand);
       
-      // 2. use flushes and straights arrays to derive straight, flush, and straight flush
-      const straights = [];
-      // ;P
+      // 3. use flushes and straights arrays to derive straight, flush, and straight flush
       if (x === 'straight') {
         allPossibilities = straights;
       } else if (x === 'flush') {
@@ -146,12 +148,47 @@ class Big2AI extends Big2Logic {
       }
     }
 
-    // finish
+    // 4. finish
     allPossibilities = allPossibilities.sort((a, b) => this.parseHand(a).power - this.parseHand(b).power);
     if (mode === 'return') return allPossibilities;
     allPossibilities.forEach(item => this.memory.push(item.map(card => card.big2rank)));
   }
+
+  allStraights(hand) {
+    debugger;
+    // take hand like [{}, {}] and return all possible straights like [[{}, ... , {}], [{}, ... , {}]] 
+    let ret = [];
+    const ranks = hand.map(card => (card.big2rankWithoutSuit));
+    
+    for (let i = 0; i < hand.length; i++) {
+      if(ranks.includes(hand[i].big2rankWithoutSuit + 10) &&
+         ranks.includes(hand[i].big2rankWithoutSuit + 20) &&
+         ranks.includes(hand[i].big2rankWithoutSuit + 30) &&
+         ranks.includes(hand[i].big2rankWithoutSuit + 40)) {
+        
+        let straights = [[hand[i]]];
+        let additions = [];
+        
+        [10, 20, 30, 40].forEach(nextRank => {
+          const allNextRank = hand.filter(card => card.big2rankWithoutSuit === hand[i].big2rankWithoutSuit + nextRank);
+          allNextRank.forEach(nextRankCard => {
+            straights.forEach(straight => {
+              additions.push(straight.concat([nextRankCard]));
+            });
+          });
+          straights = additions;
+          additions = [];
+        });
+        
+        ret = ret.concat(straights.filter(straight => straight.length === 5));
+      }
+    }
+    return ret;
+  };
 };
+
+
+
 
 /* POSSIBLE HANDS
 As Singles (just one card)
