@@ -10,7 +10,7 @@ class Big2Game extends Big2Logic {
 		console.log('Deck: ', this.deck);
 		this.table = []; 
 		this.handSort = 'ranks';
-		this.gameActive = true; // game deactivated when cards are rendering or a player has won (and eventually when AI is moving?)
+		this.gameActive = false; // game deactivated when cards are rendering or a player has won (and eventually when AI is moving?)
 		this.$container = document.getElementById('container'); // sets reference to DOM
 
     // bind
@@ -23,10 +23,15 @@ class Big2Game extends Big2Logic {
     this.clearOldHands = this.clearOldHands.bind(this);
     this.AIturn = this.AIturn.bind(this);
 		this.checkWin = this.checkWin.bind(this);
+		this.scorePoints = this.scorePoints.bind(this);
 		this.initGame = this.initGame.bind(this);
+
+		// init
+		this.initGame();
 	}
 
 	wasteTime(seconds) {
+		// a useless function
   	return new Promise(resolve => {
     	setTimeout(() => {
       	resolve('resolved');
@@ -36,6 +41,7 @@ class Big2Game extends Big2Logic {
 
 	playActiveCards(player) {
 		// play all activated cards, or pass (transfer from hand to table)
+		this.gameActive = false;
 		const playedCards = [];
 		for (let i = 0; i < player.hand.length; i++) {
 			if (player.hand[i].active) {
@@ -59,6 +65,7 @@ class Big2Game extends Big2Logic {
 		} else {
 			// invalid play? put the cards back into the hand (deactivate)
 			console.log('Invalid Play', playedCards);
+			this.gameActive = true;
 			player.hand = player.hand.concat(playedCards.splice(0));
 			player.hand.filter(card => card.active).forEach((card) => card.activate(player.name));
 		}
@@ -76,7 +83,7 @@ class Big2Game extends Big2Logic {
     // not empty table: do algorithm.
 		for (let i = 0; i < this.table.length; i++) {
 			for (let j = 0; j < this.table[i].length; j++) {
-				animateArgs.delay = 500 + i * 20;
+				animateArgs.delay = i * 20;
 				this.quickAnimate(this.table[i][j], animateArgs,
 					i === this.table.length - 1 && j === this.table[i].length - 1
 					? () => {
@@ -88,7 +95,7 @@ class Big2Game extends Big2Logic {
 		}
 	}
 
-	renderHands(handSort = 'ranks') {
+	renderHands(handSort = 'ranks', animation = 'fast') {
 		const animateArgs = { x: null, y: null, delay: null, duration: 500, ease: 'quartOut', };
 
 		// sort by rank or suit
@@ -112,7 +119,7 @@ class Big2Game extends Big2Logic {
 				if (hand[i]) {
 					animateArgs.x = window.innerWidth * -0.4 + 15 * i;
 					animateArgs.y = hand[i].y;
-					animateArgs.delay = i * 20;
+					if (animation === 'cool') animateArgs.delay = i * 20;
 					this.quickAnimate(hand[i], animateArgs, () => hand[i].$el.style.zIndex = i);
 				}
 			});
@@ -171,8 +178,8 @@ class Big2Game extends Big2Logic {
       this.you.hand.length
     );
     if (!AIwillPlay.length) {
-      console.log('AI passed. ');
-      this.wipeTable();
+			console.log('AI passed. ');
+			this.wipeTable(() => this.gameActive = true);
     } else {
       console.log('AI HAND HOLDS THIS RANKS: ', this.AI.hand.map(card => card.big2rank));
       this.AI.hand.filter(card => AIwillPlay.includes(card.big2rank)).forEach((card) => card.activate('AI'));
@@ -186,19 +193,34 @@ class Big2Game extends Big2Logic {
 		console.log(`checking if ${playerName} won`);
 		if (playerName === 'you') {
 			if (this.you.hand.length === 0) {
-				document.getElementById('scoreboard').innerHTML = 'You Win!';
-				this.gameActive = false;
+				this.scorePoints(playerName);
 				return;
 			}
 			this.AIturn();
 		} else if (playerName === 'AI') {
 			if (this.AI.hand.length === 0) {
-				document.getElementById('scoreboard').innerHTML = 'AI Wins!';
-				this.gameActive = false;
+				this.scorePoints(playerName);
 				return;
 			}
 			console.log('AI just finished turn. ');	
+			this.gameActive = true;
 		}
+	}
+
+	scorePoints(playerName) {
+		const elementId = playerName === 'you' ? 'your-score' : 'ai-score';
+		document.getElementById(elementId).innerHTML = 
+			~~document.getElementById(elementId).innerHTML +
+			(playerName === 'you' ? this.AI.hand.length : this.you.hand.length) *
+			Math.pow(2, (this.table.length ? this.table[this.table.length - 1] : []).filter(card => card.rank === 2).length);
+		if (~~document.getElementById(elementId).innerHTML >= 49) {
+			document.getElementById('message').innerHTML = playerName === 'you' ? 'You Win!' : 'AI Wins!';
+			this.gameActive = false;
+			return;
+		}
+
+		this.deck.unmount(this.$container);
+		window.game = new Big2Game();
 	}
 
 	initGame() {		
@@ -216,7 +238,7 @@ class Big2Game extends Big2Logic {
 				} else if (e.keyCode === 83) {
 					this.handSort = this.handSort === 'ranks' ? 'suits' : 'ranks';
 					console.log('sorting based on: ', this.handSort);
-					this.renderHands(this.handSort);
+					this.renderHands(this.handSort, 'cool');
 				}
 			}
 		};
@@ -273,7 +295,10 @@ class Big2Game extends Big2Logic {
 			}
 			this.quickAnimate(this.deck.cards[i], animateArgs,
 				i === this.deck.cards.length - 1
-				? () => this.renderHands(this.handSort)
+				? () => {
+					this.renderHands(this.handSort);
+					this.gameActive = true; // not 100% good timing, but good enough, since hands = rendered before this point
+				}
 				: () => {}
 			);
 		}

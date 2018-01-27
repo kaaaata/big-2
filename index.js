@@ -1,3 +1,2 @@
-const Game = new Big2Game();
+window.game = new Big2Game();
 
-Game.initGame();
