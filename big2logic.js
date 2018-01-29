@@ -1,8 +1,5 @@
 class Big2Logic {
 	constructor() {
-		// variables
-
-		// bind
     this.parseHand = this.parseHand.bind(this);
 		this.pokerPower = this.pokerPower.bind(this);
 		this.allCombinations = this.allCombinations.bind(this);
@@ -32,25 +29,17 @@ class Big2Logic {
 		}
   }
   
-  quickAnimate(card, animateArgs, onComplete = () => {}, onStart = () => {}) {
-		// shorthand to call card.prototype.animateTo()
-		// const gameActive = this.gameActive; // deactivate game while animating (TO-DO)
-
-		card.animateTo({
-			x: animateArgs.x,
-			y: animateArgs.y,
-			delay: animateArgs.delay,
-			duration: animateArgs.duration,
-			ease: animateArgs.ease, 
-			onStart: () => {
-				// this.gameActive = null;
-				onStart();
-			},
-			onComplete: () => {
-				// this.gameActive = gameActive;
-				onComplete();
-			},
-		});
+  asyncAnimate(card, animateArgs) {
+		// async shorthand call _card.prototype.animateTo()
+    return new Promise(resolve => {
+      card.animateTo({
+        x: animateArgs.x,
+        y: animateArgs.y,
+        delay: animateArgs.delay,
+        duration: animateArgs.duration,
+        ease: animateArgs.ease,
+      });
+    });
 	}
 
 	pokerPower(hand, ranks, suits) {
@@ -125,13 +114,4 @@ class Big2Logic {
 		}
 		return true;
 	}
-
-
 };
-
-/* POSSIBLE HANDS
-As Singles (just one card)
-As Pairs (two cards of matching values)
-As Triplets or “Trips” (three cards of matching values)
-As Poker Hands (five cards forming a straight, flush, full house, four of a kind or straight flush)
-*/

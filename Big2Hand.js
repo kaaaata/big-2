@@ -1,3 +1,6 @@
+// in progress...
+// this class is not necessary, but it would greatly simplify things if each hand were its own class instance.
+
 class Big2Hand extends Big2Logic {
     constructor(hand) {
         // take hand like [{}, {}] and generate relevant properties/methods
@@ -5,6 +8,7 @@ class Big2Hand extends Big2Logic {
         this.combo;
         this.power; 
 
+        this.init.call(this);
     }
 
     init() {

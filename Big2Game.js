@@ -8,13 +8,13 @@ class Big2Game extends Big2Logic {
     this.AIalgorithms = new Big2AI();
 		this.deck = Deck(); // no jokers
 		console.log('Deck: ', this.deck);
-		this.table = []; 
-		this.handSort = 'ranks';
+		this.table = [];
+		this.handSort = 'ranks'; // hand sorting method. 'ranks' or 'suits
 		this.gameActive = false; // game deactivated when cards are rendering or a player has won (and eventually when AI is moving?)
 		this.$container = document.getElementById('container'); // sets reference to DOM
 
     // bind
-    this.quickAnimate = this.quickAnimate.bind(this);
+    this.asyncAnimate = this.asyncAnimate.bind(this);
 
 		this.playActiveCards = this.playActiveCards.bind(this);
 		this.wipeTable = this.wipeTable.bind(this);
@@ -22,7 +22,6 @@ class Big2Game extends Big2Logic {
 		this.renderTable = this.renderTable.bind(this);
     this.clearOldHands = this.clearOldHands.bind(this);
     this.AIturn = this.AIturn.bind(this);
-		this.checkWin = this.checkWin.bind(this);
 		this.scorePoints = this.scorePoints.bind(this);
 		this.initGame = this.initGame.bind(this);
 
@@ -34,14 +33,14 @@ class Big2Game extends Big2Logic {
 		// a useless function
   	return new Promise(resolve => {
     	setTimeout(() => {
-      	resolve('resolved');
-    	}, 1000 * seconds);
-  	});
+        console.log('finished wasting time');
+        resolve('finished wasting time');
+      }, 1000 * seconds);
+    });
 	}
 
-	playActiveCards(player) {
+	async playActiveCards(player) {
 		// play all activated cards, or pass (transfer from hand to table)
-		this.gameActive = false;
 		const playedCards = [];
 		for (let i = 0; i < player.hand.length; i++) {
 			if (player.hand[i].active) {
@@ -61,115 +60,100 @@ class Big2Game extends Big2Logic {
 			playedCardsParsed && tableCardsParsed.combo &&
 			playedCardsParsed.combo === tableCardsParsed.combo && playedCardsParsed.power >= tableCardsParsed.power) {
 			this.table.push(playedCards);
-			this.renderTable(true, () => this.checkWin(player.name));
 		} else {
 			// invalid play? put the cards back into the hand (deactivate)
 			console.log('Invalid Play', playedCards);
-			this.gameActive = true;
 			player.hand = player.hand.concat(playedCards.splice(0));
 			player.hand.filter(card => card.active).forEach((card) => card.activate(player.name));
 		}
 	}
 
-	wipeTable(cb) {
+	async wipeTable() {
 		const animateArgs = { x: window.innerWidth * -0.7, y: 0, delay: null, duration: 500, ease: 'quartOut', };
 
-    // empty table = do callback and end
-    if (!this.table.length) {
-      setTimeout(cb, 500); // ok to use setTimeout because the table will only be empty on game start. (no stack)
-      return;
-    }
+    if (!this.table.length) return;
 
     // not empty table: do algorithm.
 		for (let i = 0; i < this.table.length; i++) {
 			for (let j = 0; j < this.table[i].length; j++) {
-				animateArgs.delay = i * 20;
-				this.quickAnimate(this.table[i][j], animateArgs,
-					i === this.table.length - 1 && j === this.table[i].length - 1
-					? () => {
-						this.table = [];
-						if (cb) cb();
-					}
-					: () => {});
+        animateArgs.delay = i * 20;
+        this.asyncAnimate(this.table[i][j], animateArgs);
 			}
-		}
+    }
+    
+    await this.wasteTime(0.5);
+    this.table = [];
 	}
 
-	renderHands(handSort = 'ranks', animation = 'fast') {
+	async renderHands(handSort = 'ranks', animation = 'fast', hands = 'all') {
+    // sort hand by 'ranks' or 'suits'. animation options 'fast' or 'cool'. render hands 'all' or 'you' only.
 		const animateArgs = { x: null, y: null, delay: null, duration: 500, ease: 'quartOut', };
-
+    
 		// sort by rank or suit
 		if (handSort === 'ranks') {
 			this.you.hand = this.you.hand.sort((a, b) => (a.big2rank - b.big2rank));
-			this.AI.hand = this.AI.hand.sort((a, b) => (a.big2rank - b.big2rank));
+			if (hands === 'all') this.AI.hand = this.AI.hand.sort((a, b) => (a.big2rank - b.big2rank));
 		} else if (handSort === 'suits') {
 			let youNewHand = [];
 			let AINewHand = [];
 			[3, 2, 1, 0].forEach(suit => {
 				youNewHand = youNewHand.concat(this.you.hand.sort((a, b) => (b.suit - a.suit)).filter(card => card.suit === suit).sort((a, b) => (a.big2rank - b.big2rank)));
-				AINewHand = AINewHand.concat(this.AI.hand.sort((a, b) => (b.suit - a.suit)).filter(card => card.suit === suit).sort((a, b) => (a.big2rank - b.big2rank)));
+				if (hands === 'all') AINewHand = AINewHand.concat(this.AI.hand.sort((a, b) => (b.suit - a.suit)).filter(card => card.suit === suit).sort((a, b) => (a.big2rank - b.big2rank)));
 			});
 			this.you.hand = youNewHand;
-			this.AI.hand = AINewHand;
+			if (hands === 'all') this.AI.hand = AINewHand;
 		}
-
+    
 		// animate
 		for (let i = 0; i < 18; i++) {
-			[this.you.hand, this.AI.hand].forEach(hand => {
+			[this.you.hand, hands === 'all' ? this.AI.hand : []].forEach(hand => {
 				if (hand[i]) {
 					animateArgs.x = window.innerWidth * -0.4 + 15 * i;
 					animateArgs.y = hand[i].y;
-					if (animation === 'cool') animateArgs.delay = i * 20;
-					this.quickAnimate(hand[i], animateArgs, () => hand[i].$el.style.zIndex = i);
+          if (animation === 'cool') animateArgs.delay = i * 20;
+          this.asyncAnimate(hand[i], animateArgs);
+          hand[i].$el.style.zIndex = i;
 				}
 			});
-		}
+    }
+
+    await this.wasteTime(0.5);
 	}
 
-	renderTable(fast = true, cb) {
+	async renderTable(fast = true) {
 		const animateArgs = { x: null, y: 0, delay: null, duration: 500, ease: 'quartOut', };
 
 		// add everything to the table 
 		for (let i = 0; i < this.table.length; i++) {
 			for (let j = 0; j < this.table[i].length; j++) {
-				animateArgs.x = window.innerWidth * -0.4 + 15 * j + 155 * i;
-				animateArgs.delay = j * (fast ? 20 : 10);
-				this.quickAnimate(this.table[i][j], animateArgs,
-					() => {
-						if (i === this.table.length - 1) {
-							if (i === 2 && j === this.table[2].length - 1) {
-								this.clearOldHands(cb);
-							} else if (i < 2 && j === this.table[i].length - 1) {
-								if (cb) cb(); // cb i.e. checkWin from playActiveCards gets executed here
-								this.renderHands(this.handSort);
-							}
-						}
-					}
-				);
+        animateArgs.x = window.innerWidth * -0.4 + 15 * j + 155 * i;
+        animateArgs.delay = j * (fast ? 20 : 10);
+        this.asyncAnimate(this.table[i][j], animateArgs);
 			}
-		}
+    }
+
+    await this.wasteTime(0.5);
+    await this.clearOldHands();
 	}
 
-	clearOldHands(cb) {
+	async clearOldHands() {
 		// all hands except most recently played 2 hands fall off table
-		const animateArgs = { x: window.innerWidth * -0.7, y: 0, delay: null, duration: 500, ease: 'quartOut', };
+    const animateArgs = { x: window.innerWidth * -0.7, y: 0, delay: null, duration: 500, ease: 'quartOut', };
 
 		if (this.table.length === 3) {
 			for (let i = 0; i < this.table[0].length; i++) {
-				animateArgs.delay = i * 20;
-				this.quickAnimate(this.table[0][i], animateArgs,
-					i === this.table[0].length - 1
-					? () => {
-						this.table = this.table.slice(1);
-						this.renderTable(false);
-						cb(); // cb i.e. checkWin from playActiveCards gets executed here
-					}
-					: () => {});
+        animateArgs.delay = i * 20;
+        this.asyncAnimate(this.table[0][i], animateArgs);
+        if (i === this.table[0].length - 1) {
+          this.table = this.table.slice(1);
+          await this.wasteTime(0.5);
+          await this.renderTable();
+        }
 			}
-		}
+    }
 	};	
 
-  AIturn() {
+  async AIturn() {
     const AIwillPlay = this.AIalgorithms.selectBestHandToPlay.call(this,
       this.AI.hand,
       this.parseHand(this.table.length === 2
@@ -179,33 +163,18 @@ class Big2Game extends Big2Logic {
     );
     if (!AIwillPlay.length) {
 			console.log('AI passed. ');
-			this.wipeTable(() => this.gameActive = true);
+      await this.wipeTable();
     } else {
       console.log('AI HAND HOLDS THIS RANKS: ', this.AI.hand.map(card => card.big2rank));
-      this.AI.hand.filter(card => AIwillPlay.includes(card.big2rank)).forEach((card) => card.activate('AI'));
+      this.AI.hand.filter(card => AIwillPlay.includes(card.big2rank)).forEach(async(card) => await card.activate('AI'));
       console.log('AI hand activated these many cards: ', this.AI.hand.filter(card => card.active).length);
-      //const wasteTime = await this.wasteTime(1); // this line is for cool delay effect but it messes everything up
-      this.playActiveCards(this.AI);
+      await this.wasteTime(0.5); // cool visual effect
+      await this.playActiveCards(this.AI);
+      await this.renderTable();
+      await this.renderHands();
+      if (this.AI.hand.length === 0) this.scorePoints('AI'); // check win
     }
   }
-
-	checkWin(playerName) {
-		console.log(`checking if ${playerName} won`);
-		if (playerName === 'you') {
-			if (this.you.hand.length === 0) {
-				this.scorePoints(playerName);
-				return;
-			}
-			this.AIturn();
-		} else if (playerName === 'AI') {
-			if (this.AI.hand.length === 0) {
-				this.scorePoints(playerName);
-				return;
-			}
-			console.log('AI just finished turn. ');	
-			this.gameActive = true;
-		}
-	}
 
 	scorePoints(playerName) {
 		const elementId = playerName === 'you' ? 'your-score' : 'ai-score';
@@ -223,57 +192,47 @@ class Big2Game extends Big2Logic {
 		window.game = new Big2Game();
 	}
 
-	initGame() {		
+	async initGame() {
 		const animateArgs = { x: null, y: null, delay: null, duration: 500, ease: 'quartOut', };
 		// declare key events
-		document.onkeyup = (e) => {
+		document.onkeyup = async(e) => {
 			if (this.gameActive) {
-				if (e.keyCode === 13) {
-					console.log('you pressed enter');
-					this.playActiveCards(this.you);
-				} else if (e.keyCode === 80) {
-					console.log('You passed. ');
+				if (e.keyCode === 13) { // enter
+          this.gameActive = false;
+          const originalHandSize = this.you.hand.length;
+          await this.playActiveCards(this.you);
+          if (originalHandSize === this.you.hand.length) { // play invalid cards = stop sequence
+            this.gameActive = true;
+            return;
+          }
+          await this.renderTable();
+          await this.renderHands();
+          if (this.you.hand.length === 0) { // check win
+            this.scorePoints('you');
+          } else {
+            await this.AIturn();
+            console.log('AI finished turn');
+            this.gameActive = true;
+          }
+				} else if (e.keyCode === 80) { // p
           this.you.hand.filter(card => card.active).forEach((card) => card.activate('you'));
-          this.wipeTable(this.AIturn);
-				} else if (e.keyCode === 83) {
+          this.gameActive = false;
+          await this.wipeTable();
+          await this.AIturn();
+          console.log('AI finished turn');
+          this.gameActive = true;
+        } else if (e.keyCode === 83) { // s
+          this.gameActive = false;
 					this.handSort = this.handSort === 'ranks' ? 'suits' : 'ranks';
-					console.log('sorting based on: ', this.handSort);
-					this.renderHands(this.handSort, 'cool');
+          await this.renderHands(this.handSort, 'cool', 'you');
+          this.gameActive = true;
 				}
 			}
 		};
 
-		// add to DOM
-		this.deck.mount(this.$container);
+		this.deck.mount(this.$container); // add to DOM
 
 		// deal cards
-
-		// // CUSTOMIZED DEALS FOR TESTING
-		// for (let i = 0; i < this.deck.cards.length; i++) {
-		// 	this.deck.cards[i].setSide('front');
-		// 	if (this.deck.cards[i].rank >= 9) {
-		// 		// extra cards exit the screen
-		// 		animateArgs.x = this.deck.cards[i].x;
-		// 		animateArgs.y = window.innerHeight * -0.7;
-		// 		animateArgs.delay = 1500 + i * 20;
-		// 	} else if (this.deck.cards[i].rank >= 5 && this.deck.cards[i].rank < 9) {
-		// 		this.AI.hand.push(this.deck.cards[i]);
-		// 		animateArgs.x = window.innerWidth * -0.4 + 15 * (i - 18);
-		// 		animateArgs.y = window.innerHeight * -0.3;
-		// 		animateArgs.delay = 1000 + i * 20;
-		// 	} else if (this.deck.cards[i].rank < 5) {
-		// 		this.you.hand.push(this.deck.cards[i]);
-		// 		animateArgs.x = window.innerWidth * -0.4 + 15 * i;
-		// 		animateArgs.y = window.innerHeight * 0.3;
-		// 		animateArgs.delay = 1000 + i * 20;
-		// 	}
-		// 	this.quickAnimate(this.deck.cards[i], animateArgs,
-		// 		i === this.deck.cards.length - 1
-		// 		? this.renderHands
-		// 		: () => {}
-		// 	);
-		// }
-		
 		this.deck.shuffle();
 		for (let i = 0; i < this.deck.cards.length; i++) {
 			this.deck.cards[i].setSide('front');
@@ -293,16 +252,9 @@ class Big2Game extends Big2Logic {
 				animateArgs.y = window.innerHeight * 0.3;
 				animateArgs.delay = 1000 + i * 20;
 			}
-			this.quickAnimate(this.deck.cards[i], animateArgs,
-				i === this.deck.cards.length - 1
-				? () => {
-					this.renderHands(this.handSort);
-					this.gameActive = true; // not 100% good timing, but good enough, since hands = rendered before this point
-				}
-				: () => {}
-			);
-		}
-		
+      this.asyncAnimate(this.deck.cards[i], animateArgs);
+    }
+    
     // modify each card object in this.deck to have Big-2-relevant properties
     // properties are added instead of subclassing for simplicity...the deck_of_cards _card class is already great
 		animateArgs.delay = 0;
@@ -317,15 +269,20 @@ class Big2Game extends Big2Logic {
 			if (card.suit === 2) card.unicodeSuit = '♣';
 			if (card.suit === 3) card.unicodeSuit = '♦';
 			card.active = false; // tracks whether a card in your hand is active i.e. 'popped out'
-			card.activate = (playerName) => {
+			card.activate = async(playerName) => {
 				card.active = !card.active;
 				animateArgs.x = card.x;
 				animateArgs.y = card.y + (card.active ? 20 : -20) * (playerName === 'you' ? -1 : 1);
-				this.quickAnimate(card, animateArgs);
+        await this.asyncAnimate(card, animateArgs);
 			};
-			card.$el.onclick = () => { // click a card to prepare it for play
-				if (this.gameActive && this.you.hand.map(card => card.big2rank).includes(card.big2rank)) card.activate('you');
+			card.$el.onclick = async() => { // click a card to prepare it for play
+				if (this.gameActive && this.you.hand.map(card => card.big2rank).includes(card.big2rank)) await card.activate('you');
 			};
-		});	
-	}
+    });	
+
+    await this.wasteTime(3);
+    await this.renderHands(this.handSort);
+    this.gameActive = true;
+    return;
+  }
 };

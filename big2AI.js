@@ -1,5 +1,5 @@
 class Big2AI extends Big2Logic {
-  // abstract AI class. AI has 'memory', which stores all hand combinations it can play on its turn
+  // AI class. AI has 'memory', which stores all hand combinations it can play on its turn
   // selectBestHandToPlay() continually adds to 'memory', and then plays the least valuable (first) one
   // this type of algorithm is scalable - you can adjust which hand it plays based on urgency i.e. your hand length
 
@@ -29,22 +29,14 @@ class Big2AI extends Big2Logic {
 		if (!parsedTable) {
 			// AI will play these hands in order on an empty table.
       this.add5x('straight');
-      console.log(`AI can play # hands: ${this.memory.length}`);
       this.add1x2x3x4x(2);
-      console.log(`AI can play # hands: ${this.memory.length}`);
       this.add1x2x3x4x(3);
-      console.log(`AI can play # hands: ${this.memory.length}`);
       this.add5x('flush');
-      console.log(`AI can play # hands: ${this.memory.length}`);
       this.add1x2x3x4x(1);
-      console.log(`AI can play # hands: ${this.memory.length}`);
       this.add5x('full house');
-      console.log(`AI can play # hands: ${this.memory.length}`);
       this.add5x('4x');
-      console.log(`AI can play # hands: ${this.memory.length}`);
       this.add5x('straight flush');
-      console.log(`AI can play # hands: ${this.memory.length}`);
-      console.log('AI can play hands: ', this.memory);
+      console.log(`AI memorized ${this.memory.length} hands`);
 		} else if (['1x', '2x', '3x'].includes(parsedTable.combo)) {
       this.add1x2x3x4x(parseInt(parsedTable.combo[0]));
     } else if (parsedTable.combo === '5x') {
@@ -56,11 +48,10 @@ class Big2AI extends Big2Logic {
     }
 
     // get rid of cards that do not beat the table and sort the remainder from min-max
-    console.log('memory before filtering: ', this.memory);
+    console.log('AI memorized these hands before filtering: ', this.memory);
     this.memory = this.memory.filter(hand => this.parseHand(hand).power > (parsedTable ? parsedTable.power : 0));
-    //this.memory = this.memory.filter(hand => this.parseHand(hand).power > (parsedTable ? parsedTable.power : 0));
-
-		console.log('AI can play: ', this.memory);
+    console.log('AI memorized these hands after filtering: ', this.memory);
+    
 		return this.memory[0] || [];
   }
 
@@ -110,7 +101,6 @@ class Big2AI extends Big2Logic {
           if (single.rank !== four[0].rank) allPossibilities.push(four.concat([single]));
         });
       });
-      console.log('all four possibilities: ', allPossibilities);
       // 3. finish
       allPossibilities.forEach(item => this.memory.push(item.map(card => card.big2rank)));
     } else if (x === 'full house') {
@@ -123,7 +113,6 @@ class Big2AI extends Big2Logic {
           if (triplet[0].rank !== pair[0].rank) allPossibilities.push(pair.concat(triplet));
         });
       });
-      console.log('all full house possibilities: ', allPossibilities);
       // 3. finish
       allPossibilities.forEach(item => this.memory.push(item.map(card => card.big2rank)));
     } else {
@@ -135,7 +124,6 @@ class Big2AI extends Big2Logic {
         if (filter_suit.length < 5) return;
         filter_suit.slice(4).forEach(flushMaxCard => flushes.push(filter_suit.slice(0, 4).concat([flushMaxCard])));
       });
-      console.log('all flush possibilities: ', flushes);
 
       // 2. generate all straights
       const straights = this.allStraights(this.hand);
@@ -187,33 +175,3 @@ class Big2AI extends Big2Logic {
     return ret;
   };
 };
-
-
-
-
-/* POSSIBLE HANDS
-As Singles (just one card)
-As Pairs (two cards of matching values)
-As Triplets or “Trips” (three cards of matching values)
-As Poker Hands (five cards forming a straight, flush, full house, four of a kind or straight flush)
-*/
-
-
-/*
-		if (straight && flush) {
-			return 5000 + ((ranks[4] === 15 && ranks[3] === 14) ? hand[3] : hand[4]); // mathematically simplified;
-		} else if (this.allEqual(ranks.slice(0, 4)) || this.allEqual(ranks.slice(1))) {
-			return 4000 + (this.allEqual(ranks.slice(0, 4)) ? ranks[0] : ranks[4]);
-		} else if (
-			this.allEqual(ranks.slice(0, 3)) && this.allEqual(ranks.slice(3)) || 
-			this.allEqual(ranks.slice(0, 2)) && this.allEqual(ranks.slice(2))) {
-			return 3000 + (this.allEqual(ranks.slice(0, 3)) ? hand[2] : hand[4]);
-		} else if (flush) {
-			return 2000 + ranks[4];
-		} else if (straight) {
-			return 1000 + ((ranks[4] === 15 && ranks[3] === 14) ? hand[3] : hand[4]);
-		} else {
-			return false;
-		}
-
-*/
