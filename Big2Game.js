@@ -111,8 +111,8 @@ class Big2Game extends Big2Logic {
 					animateArgs.x = window.innerWidth * -0.4 + 15 * i;
 					animateArgs.y = hand[i].y;
           if (animation === 'cool') animateArgs.delay = i * 20;
-          this.asyncAnimate(hand[i], animateArgs);
-          hand[i].$el.style.zIndex = i;
+					this.asyncAnimate(hand[i], animateArgs);
+					hand[i].$el.style.zIndex = i;
 				}
 			});
     }
@@ -226,6 +226,8 @@ class Big2Game extends Big2Logic {
 					this.handSort = this.handSort === 'ranks' ? 'suits' : 'ranks';
           await this.renderHands(this.handSort, 'cool', 'you');
           this.gameActive = true;
+				} else if (e.keyCode === 84) { // t
+					this.AI.hand.forEach(card => card.setSide(card.side === 'front' ? 'back' : 'front'));
 				}
 			}
 		};
@@ -235,7 +237,6 @@ class Big2Game extends Big2Logic {
 		// deal cards
 		this.deck.shuffle();
 		for (let i = 0; i < this.deck.cards.length; i++) {
-			this.deck.cards[i].setSide('front');
 			if (i >= 36) {
 				// extra cards exit the screen
 				animateArgs.x = this.deck.cards[i].x;
@@ -248,6 +249,7 @@ class Big2Game extends Big2Logic {
 				animateArgs.delay = 1000 + i * 20;
 			} else if (i >= 0 && i < 18) {
 				this.you.hand.push(this.deck.cards[i]);
+				this.deck.cards[i].setSide('front');
 				animateArgs.x = window.innerWidth * -0.4 + 15 * i;
 				animateArgs.y = window.innerHeight * 0.3;
 				animateArgs.delay = 1000 + i * 20;

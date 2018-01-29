@@ -37,7 +37,7 @@ class Big2Logic {
         y: animateArgs.y,
         delay: animateArgs.delay,
         duration: animateArgs.duration,
-        ease: animateArgs.ease,
+		ease: animateArgs.ease
       });
     });
 	}
