@@ -128,7 +128,8 @@ class Big2Game extends Big2Logic {
 			for (let j = 0; j < this.table[i].length; j++) {
         animateArgs.x = window.innerWidth * -0.4 + 15 * j + 155 * i;
         animateArgs.delay = j * (fast ? 20 : 10);
-        this.asyncAnimate(this.table[i][j], animateArgs);
+				this.asyncAnimate(this.table[i][j], animateArgs);
+				this.table[i][j].setSide('front');
 			}
     }
 
