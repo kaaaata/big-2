@@ -1,5 +1,5 @@
 # big-2
-Big 2 card game. HTML/CSS/JS, using 1 library for graphics: https://github.com/pakastin/deck-of-cards
+Big 2 card game in HTML/CSS/JS 
 
 Note: game is working, but still many changes need to be made
 
@@ -23,6 +23,5 @@ https://github.com/pakastin/deck-of-cards
 
 To-do: 
 -Improve AI
--Deploy to web
 -Add timer
 -Add optional auto-win animation sequence if your smallest card is greater than the opponent's greatest card
