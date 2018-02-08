@@ -32,13 +32,7 @@ class Big2Logic {
   asyncAnimate(card, animateArgs) {
 		// async shorthand call _card.prototype.animateTo()
     return new Promise(resolve => {
-      card.animateTo({
-        x: animateArgs.x,
-        y: animateArgs.y,
-        delay: animateArgs.delay,
-        duration: animateArgs.duration,
-		ease: animateArgs.ease
-      });
+      card.animateTo(animateArgs);
     });
 	}
 
