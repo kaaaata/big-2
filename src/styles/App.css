@@ -1,7 +1,6 @@
 body {
   margin: 0;
-  padding: 0;
-  background-color: lightcyan; }
+  padding: 0; }
 
 a {
   text-decoration: none;
@@ -9,23 +8,16 @@ a {
   color: black; }
 
 input {
-  font-size: 36px;
-  border-radius: 20px;
-  background-color: #ccebeb;
   outline: none; }
 
 button {
   cursor: pointer;
   outline: none;
-  background-color: #ccebeb;
   border: none; }
-  button:hover {
-    background-color: #d6f5f5; }
 
 .link {
   cursor: pointer; }
 
 .app {
   font-family: "Noto Sans", sans-serif;
-  text-align: center;
   cursor: default; }

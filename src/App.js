@@ -2,33 +2,41 @@ import React, { Component } from 'react';
 import { Route, Switch } from 'react-router-dom';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
+import * as actions from './redux/actions';
 // import store from './redux/store';
-import axios from 'axios';
 import * as functions from './functions';
+
+import Home from './Home';
+import Game from './Game';
 import './styles/App.css';
 
-const mapStateToProps = () => {return{}};
-const mapDispatchToProps = () => {return{}};
+const mapStateToProps = (state) => ({
+  player: state.default.player,
+  games: state.default.games,
+});
+const mapDispatchToProps = (dispatch) => ({
+  setPlayerName: (name) => dispatch(actions.setPlayerName(name)),
+  syncGames: (games) => dispatch(actions.syncGames(games)),
+});
 
 export default withRouter(connect(mapStateToProps, mapDispatchToProps)(class App extends Component {
-  // async pingApi() {
-  //   const getCookie = (name) => {
-  //     var value = "; " + document.cookie;
-  //     var parts = value.split("; " + name + "=");
-  //     if (parts.length === 2) return decodeURIComponent(parts.pop().split(";").shift());
-  //   };
-    
-  //   const res = await axios.post('/api/', JSON.stringify(['an array']), { headers: { 'X-CSRFToken': getCookie('csrftoken') } });
-
-  //   console.log(res.data);
-  // }
-
   render() {
+    const { games } = this.props;
     return (
       <main className="app">
-        Big 2
-        <button onClick={() => functions.post('/api/test', 'test post')}>Post The Django API</button>
-        <button onClick={() => functions.get('/api/test', 'test get')}>Get The Django API</button>
+        <Switch>
+          <Route
+            exact path="/"
+            render={() => <Home />}
+          />
+          {games.map((game, index) => (
+            <Route
+              key={index}
+              exact path={`/game/${game.id}`}
+              render={() => <Game {...game} />}
+            />
+          ))}
+        </Switch>
       </main>
     );
   }

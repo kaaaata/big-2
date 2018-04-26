@@ -1,0 +1,21 @@
+.home {
+  width: 500px;
+  margin: auto; }
+  .home article {
+    margin: 0 auto 25px auto; }
+  .home .title {
+    text-align: center;
+    font-size: 24px;
+    margin-top: 250px; }
+  .home .player input {
+    font-size: 20px;
+    border-radius: 20px; }
+  .home .games {
+    display: flex;
+    justify-content: center;
+    margin: auto; }
+    .home .games button {
+      margin: 0 10px; }
+    .home .games .games-dropdown {
+      max-height: 300px;
+      overflow-y: scroll; }

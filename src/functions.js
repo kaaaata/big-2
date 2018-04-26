@@ -5,7 +5,7 @@ export const get = async(route) => {
     'X-CSRFToken': document.cookie.replace('csrftoken=', ''),
   };
   
-  return (await axios.get(route + '/', JSON.stringify('something'), { headers })).data;
+  return (await axios.get(`api/${route}/`, null, { headers })).data.res;
 };
 
 export const post = async(route, body) => {
@@ -13,5 +13,5 @@ export const post = async(route, body) => {
     'X-CSRFToken': document.cookie.replace('csrftoken=', ''),
   };
 
-  return (await axios.post(route + '/', JSON.stringify(body), { headers })).data;
+  return (await axios.post(`api/${route}/`, JSON.stringify(body), { headers })).data.res;
 }

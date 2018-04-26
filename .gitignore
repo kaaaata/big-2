@@ -9,6 +9,9 @@
 
 ## React Frontend ##
 
+# sass
+.sass-cache/
+
 # dependencies
 node_modules/
 

@@ -1,1 +1,2 @@
-// export const addDay = () => ({ type: 'add_day', payload: null });
+export const syncGames = (games) => ({ type: 'sync_games', payload: games });
+export const setPlayerName = (name) => ({ type: 'set_player_name', payload: name });
