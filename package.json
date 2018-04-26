@@ -1,13 +1,29 @@
 {
-  "name": "big2",
+  "name": "big-2",
   "version": "0.1.0",
+  "description": "Big 2",
+  "author": "Catherine Han",
+  "license": "",
   "private": true,
-  "dependencies": {
-    "deck-of-cards": "^0.1.8",
-    "harp": "*"
-  },
+  "proxy": "http://localhost:3001",
   "scripts": {
-    "start": "harp server --port $PORT"
+    "server-dev": "python3 backend/manage.py runserver 0:3001",
+    "sass-dev": "sass --watch src:src/styles --sourcemap=none",
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
   },
-  "devDependencies": {}
+  "dependencies": {
+    "ajv": "^6.0.0",
+    "axios": "^0.17.1",
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0",
+    "react-redux": "^5.0.7",
+    "react-router": "^4.2.0",
+    "react-router-dom": "^4.2.2",
+    "react-scripts": "1.1.1",
+    "redux": "^3.7.2",
+    "shortid": "^2.2.8"
+  }
 }
