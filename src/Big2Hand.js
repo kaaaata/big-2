@@ -4,42 +4,43 @@ export default class Big2Hand {
   }
 
   has(card) {
-    for (let i = 0; i < this.cards.length; i++) {
-      if (this.cards[i].big2rank === card.big2rank) return true;
-    }
-    return false;
+    return this.cards.map(item => item.big2rank).includes(card.big2rank);
   }
 
   add(card) {
     this.cards.push(card);
   }
 
+  activeBig2Ranks() {
+    return this.cards.filter(item => item.active).map(item => item.big2rank);
+  }
+
   activate(big2ranks) {
-    for (let i = 0; i < this.cards.length; i++) {
-      if (big2ranks.includes(this.cards[i].big2rank)) this.cards[i].activate();
-    }
+    this.cards.forEach(card => {
+      if (big2ranks.includes(card.big2rank)) card.activate();
+    });
   }
 
   playActiveCards() {
     const ret = [];
-    for (let i = 0; i < this.cards.length; i++) {
-      if (this.cards[i].active) {
-        this.cards[i].active = false;
-        ret.push(this.cards.splice(i, 1)[0]);
+    this.cards.forEach((card, index) => {
+      if (card.active) {
+        card.active = false;
+        ret.push(this.cards.splice(index, 1)[0]);
       }
-    }
+    });
     return ret;
   }
 
   deactivateAllCards() {
-    for (let i = 0; i < this.cards.length; i++) {
-      if (this.cards[i].active) this.cards[i].activate();
-    }
+    this.cards.forEach(card => {
+      if (card.active) card.activate();
+    });
   }
 
   render() {
-    for (let i = 0; i < this.cards.length; i++) {
-      this.cards[i].animate(this.cards[i].location, 400, i - ~~(this.cards.length / 2));
-    }
+    this.cards.forEach((card, index) => {
+      card.animate(card.location, 400, index - ~~(this.cards.length / 2));
+    });
   }
 }

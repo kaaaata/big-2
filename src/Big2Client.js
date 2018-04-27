@@ -59,6 +59,7 @@ export default class Big2Game {
     document.onkeyup = async(e) => {
 			if (this.gameActive) {
         if (e.keyCode === 13) { // enter
+          
           // this.gameActive = false;
           await this.newInstruction('playActiveCards');
         } else if (e.keyCode === 80) {

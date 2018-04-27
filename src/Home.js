@@ -95,9 +95,9 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Home extends C
               Join Game
             </DropdownToggle>
             <DropdownMenu className="games-dropdown" right>
-              {games.map((game, index) => (
+              {games.map(game => (
                 <Link
-                  key={index} // not sure why key={game.id} throws warning message here
+                  key={game.id}
                   className="link"
                   to={`/game/${game.id}`}>
                   <DropdownItem onClick={() => setGame(game)}>{game.name}</DropdownItem>  
