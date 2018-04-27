@@ -11,8 +11,8 @@ export default class Big2Hand {
     this.cards.push(card);
   }
 
-  activeBig2Ranks() {
-    return this.cards.filter(item => item.active).map(item => item.big2rank);
+  big2Ranks(filter_cb = () => true) {
+    return this.cards.filter(filter_cb).map(item => item.big2rank);
   }
 
   activate(big2ranks) {

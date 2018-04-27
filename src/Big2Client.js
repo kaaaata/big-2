@@ -41,8 +41,11 @@ export default class Big2Game {
       this.hands[player].render();
     } else if (action === 'activate') {
       this.hands[player].activate(cards);
+    } else if (action === 'deactivateAllCards') {
+      this.hands[player].deactivateAllCards();
     } else if (action === 'pass') {
       this.hands[player].deactivateAllCards();
+      this.table.fadeOut();
       if (player !== player.you) this.gameActive = true;
     }
   }
@@ -53,10 +56,14 @@ export default class Big2Game {
         if (e.keyCode === 13) { // enter
           // this.gameActive = false;
           const play = {
-            cards: this.hands[this.you].activeBig2Ranks(),
-            table: this.table.cards.length > 0 ? this.table.activeBig2Ranks() : null, // fix this to reflect all cards for table cuz none are active (use a callback)
+            cards: this.hands[this.you].big2Ranks((card) => card.active),
+            table: this.table.cards.length > 0 ? this.table.big2Ranks() : null,
           };
-          if (await functions.post('validPlay', play)) await this.newInstruction('playActiveCards');
+          if (await functions.post('validPlay', play)) {
+            await this.newInstruction('playActiveCards');
+          } else {
+            await this.newInstruction('deactivateAllCards');
+          }
         } else if (e.keyCode === 80) {
           // this.gameActive = false;
           await this.newInstruction('pass')

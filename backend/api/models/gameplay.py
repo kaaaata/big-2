@@ -3,7 +3,7 @@
 def validPlay(play):
   cards = parseHand(play['cards'])
   table = parseHand(play['table']) if play['table'] else None
-
+  
   if table == None and cards:
     return True
   elif cards == None:
