@@ -1,17 +1,21 @@
 import React, { Component } from 'react';
-import { Route, Switch } from 'react-router-dom';
+import { Link, Redirect } from 'react-router-dom';
 import { connect } from 'react-redux';
 import * as actions from './redux/actions';
 import * as functions from './functions';
+import shortid from 'shortid';
 import { Button, Form, FormGroup, Input, Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
+
 import './styles/Home.css';
 
 const mapStateToProps = (state) => ({
   player: state.default.player,
+  game: state.default.game,
   games: state.default.games,
 });
 const mapDispatchToProps = (dispatch) => ({
-  setPlayerName: (name) => dispatch(actions.setPlayerName(name)),
+  setPlayer: (name) => dispatch(actions.setPlayer(name)),
+  setGame: (game) => dispatch(actions.setGame(game)),
   syncGames: (games) => dispatch(actions.syncGames(games)),
 });
 
@@ -20,34 +24,50 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Home extends C
     super();
     this.state = {
       gameDropdownOpen: false,
+      redirect: false,
+      interval: null,
     };
-  }
-
-  selectGame(game) {
-    console.log('you selected game: ', game);
   }
 
   async newGame() {
-    const { player, syncGames } = this.props;
+    const { games, player, syncGames, setGame } = this.props;
     const newGame = {
+      id: shortid.generate(),
       name: '',
       player,
     };
+
+    if (player.name === '') return alert('Please enter your name.');
     while (newGame.name === '') {
       newGame.name = prompt('Please enter a name for your game: ');
     }
     if (!newGame.name) return;
+    setGame(newGame);
     syncGames(await functions.post('newGame', newGame));
+    this.setState({ redirect: true });
   }
 
   async componentDidMount() {
-    this.props.syncGames(await functions.get('allGames'));
-    console.log(this.props.games);
+    const { player, setPlayer, syncGames } = this.props;
+    const newPlayer = {
+      id: shortid.generate(),
+      name: '',
+    };
+    
+    setPlayer(newPlayer);
+    syncGames(await functions.get('allGames'));
+    this.setState({ interval: setInterval(async() => {
+      syncGames(await functions.get('allGames'));
+    }, 1000) });
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.state.interval);
   }
 
   render() {
-    const { gameDropdownOpen } = this.state;
-    const { player, games, setPlayerName } = this.props;
+    const { gameDropdownOpen, redirect } = this.state;
+    const { player, games, game, setPlayer, setGame } = this.props;
 
     return (
       <section className="home">
@@ -58,8 +78,8 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Home extends C
           <Form onSubmit={(e) => e.preventDefault()}>
             <FormGroup>
               <Input
-                value={player}
-                onChange={(e) => setPlayerName(e.target.value)}
+                value={player.name}
+                onChange={(e) => setPlayer({ id: player.id, name: e.target.value })}
                 placeholder="Your name"
               />
             </FormGroup>
@@ -76,12 +96,12 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Home extends C
             </DropdownToggle>
             <DropdownMenu className="games-dropdown" right>
               {games.map((game, index) => (
-                <DropdownItem
+                <Link
                   key={index} // not sure why key={game.id} throws warning message here
-                  onClick={(e) => this.selectGame(game)}
-                >
-                  {game.name}
-                </DropdownItem>  
+                  className="link"
+                  to={`/game/${game.id}`}>
+                  <DropdownItem onClick={() => setGame(game)}>{game.name}</DropdownItem>  
+                </Link>
               ))}
             </DropdownMenu>
           </Dropdown>
@@ -89,6 +109,9 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Home extends C
             color="danger"
             onClick={() => this.newGame()}
           >
+            {redirect &&
+              <Redirect to={`/game/${game.id}`} />
+            }
             New Game
           </Button>
         </article>

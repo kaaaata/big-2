@@ -11,17 +11,16 @@ import Game from './Game';
 import './styles/App.css';
 
 const mapStateToProps = (state) => ({
-  player: state.default.player,
   games: state.default.games,
 });
 const mapDispatchToProps = (dispatch) => ({
-  setPlayerName: (name) => dispatch(actions.setPlayerName(name)),
-  syncGames: (games) => dispatch(actions.syncGames(games)),
+  //
 });
 
 export default withRouter(connect(mapStateToProps, mapDispatchToProps)(class App extends Component {
   render() {
     const { games } = this.props;
+
     return (
       <main className="app">
         <Switch>

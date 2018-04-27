@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router'
 import { Provider } from 'react-redux';
 import store from './redux/store';
 import 'bootstrap/dist/css/bootstrap.min.css'; // reactstrap
+
 import App from './App';
 
 ReactDOM.render(

@@ -1,0 +1,7 @@
+.game .players {
+  height: 100px;
+  border: solid red; }
+.game .client #container {
+  width: 800px;
+  height: 600px;
+  border: solid black; }

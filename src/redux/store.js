@@ -2,16 +2,23 @@ import { createStore, combineReducers } from 'redux';
 import * as functions from '../functions';
 
 const initialState = {
-  player: '',
-  games: [1, 2, 3],
+  player: {
+    name: '',
+  },
+  game: {},
+  games: [],
 };
 
 const reducers = {
   default: (state = initialState, action) => {
     switch (action.type) {
-      case 'set_player_name':
+      case 'set_player':
         return { ...state, 
           player: action.payload,
+        };
+      case 'set_game':
+        return { ...state, 
+          game: action.payload,
         };
       case 'sync_games':
         return { ...state, 
