@@ -1,6 +1,7 @@
-# from django.db import models
+# data.py stores shared data on server for sharing with clients.
 
 from threading import Timer
+# from django.db import models
 
 class Games:
   def __init__(self):
@@ -30,27 +31,27 @@ class Instructions:
 
 class LiveGames:
   def __init__(self):
-    self.live_games = []
+    self.liveGames = []
   def birth(self, game_id):
-    self.live_games.append({ 'game_id': game_id, 'life': 7 })
+    self.liveGames.append({ 'game_id': game_id, 'life': 7 })
   def kill(self):
-    dead_games = [i['game_id'] for i in self.live_games if i['life'] == 0]
-    self.live_games = [{ 'game_id': i['game_id'], 'life': i['life'] - 1 } for i in self.live_games if i['life'] > 0]
+    dead_games = [i['game_id'] for i in self.liveGames if i['life'] == 0]
+    self.liveGames = [{ 'game_id': i['game_id'], 'life': i['life'] - 1 } for i in self.liveGames if i['life'] > 0]
     return dead_games
   def stayAlive(self, game_id):
-    self.live_games = [{ 'game_id': i['game_id'], 'life': 7 } for i in self.live_games if i['game_id'] == game_id]
+    self.liveGames = [{ 'game_id': i['game_id'], 'life': 7 } for i in self.liveGames if i['game_id'] == game_id]
     return game_id
 
 
 games = Games()
-live_games = LiveGames()
+liveGames = LiveGames()
 instructions = Instructions()
 
 
 def allGames():
   return games.games
 def newGame(game):
-  live_games.birth(game['id'])
+  liveGames.birth(game['id'])
   return games.newGame(game)
 
 def fetchInstruction(game_id):
@@ -59,11 +60,11 @@ def sendInstruction(newInstruction):
   return instructions.addInstruction(newInstruction)
 
 def live():
-  deaths = live_games.kill()
+  deaths = liveGames.kill()
   instructions.kill(deaths)
   games.kill(deaths)
   Timer(1, live).start()
 Timer(1, live).start()
 
 def stayAlive(game_id):
-  live_games.stayAlive(game_id)
+  liveGames.stayAlive(game_id)

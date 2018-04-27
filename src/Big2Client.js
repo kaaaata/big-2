@@ -11,7 +11,7 @@ export default class Big2Game {
     // variables
     this.p1 = players[0]; this.p2 = players[1];
     this.hands = { [this.p1.id]: new Big2Hand(), [this.p2.id]: new Big2Hand() };
-    this.table = [];
+    this.table = new Big2Hand();
     this.you = player.id;
     this.deck = window.Deck(); console.log('Deck: ', this.deck);
     this.gameActive = false;
@@ -19,15 +19,6 @@ export default class Big2Game {
     
     this.initGame.call(this);
   };
-
-  renderTable() {
-    for (let i = 0; i < this.table.length; i++) {
-      for (let j = 0; j < this.table[i].cards.length; j++) {
-        if (i === 0) this.table[i].cards[j].animate('table', 400, j - ~~(this.table[i].cards.length / 2));
-        if (i !== 0) this.table[i].cards[j].$el.style.opacity = 0;
-      }
-    }
-  }
 
   async newInstruction(action, cards = null) {
     const instruction = {
@@ -44,8 +35,9 @@ export default class Big2Game {
     const { player, action, cards } = instruction;
 
     if (action === 'playActiveCards') {
-      this.table.unshift(new Big2Hand(this.hands[player].playActiveCards()));
-      this.renderTable();
+      if (this.table.cards.length) this.table.fadeOut();
+      this.table = new Big2Hand(this.hands[player].playActiveCards());
+      this.table.render('table');
       this.hands[player].render();
     } else if (action === 'activate') {
       this.hands[player].activate(cards);
@@ -59,9 +51,13 @@ export default class Big2Game {
     document.onkeyup = async(e) => {
 			if (this.gameActive) {
         if (e.keyCode === 13) { // enter
-          
           // this.gameActive = false;
-          await this.newInstruction('playActiveCards');
+          if (!this.table.cards.length) return await this.newInstruction('playActiveCards');
+          const play = {
+            cards: this.hands[this.you].activeBig2Ranks(),
+            table: this.table.activeBig2Ranks(),
+          };
+          if (await functions.post('validPlay', play)) await this.newInstruction('playActiveCards');
         } else if (e.keyCode === 80) {
           // this.gameActive = false;
           await this.newInstruction('pass')

@@ -38,9 +38,15 @@ export default class Big2Hand {
     });
   }
 
-  render() {
+  fadeOut() {
+    this.cards.forEach(card => {
+      card.$el.style.opacity = 0;
+    });
+  }
+
+  render(destination = null) {
     this.cards.forEach((card, index) => {
-      card.animate(card.location, 400, index - ~~(this.cards.length / 2));
+      card.animate(destination || card.location, 400, index - ~~(this.cards.length / 2));
     });
   }
 }

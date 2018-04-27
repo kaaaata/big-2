@@ -1,5 +1,6 @@
 from django.http import JsonResponse
 from api.models import data
+from api.models import gameplay
 import json
 
 # models/data.py
@@ -20,5 +21,9 @@ def stayAlive(req):
   req = json.loads(req.body)
   return JsonResponse({ 'res': data.stayAlive(req) })
 
-
 # models/gameplay.py
+def validPlay(req):
+  req = json.loads(req.body)
+  print(req)
+  print(gameplay.validPlay(req))
+  return JsonResponse({ 'res': gameplay.validPlay(req) })
