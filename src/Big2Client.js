@@ -52,10 +52,9 @@ export default class Big2Game {
 			if (this.gameActive) {
         if (e.keyCode === 13) { // enter
           // this.gameActive = false;
-          if (!this.table.cards.length) return await this.newInstruction('playActiveCards');
           const play = {
             cards: this.hands[this.you].activeBig2Ranks(),
-            table: this.table.activeBig2Ranks(),
+            table: this.table.cards.length > 0 ? this.table.activeBig2Ranks() : null, // fix this to reflect all cards for table cuz none are active (use a callback)
           };
           if (await functions.post('validPlay', play)) await this.newInstruction('playActiveCards');
         } else if (e.keyCode === 80) {
