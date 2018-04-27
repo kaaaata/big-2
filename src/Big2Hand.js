@@ -31,6 +31,12 @@ export default class Big2Hand {
     return ret;
   }
 
+  deactivateAllCards() {
+    for (let i = 0; i < this.cards.length; i++) {
+      if (this.cards[i].active) this.cards[i].activate();
+    }
+  }
+
   render() {
     for (let i = 0; i < this.cards.length; i++) {
       this.cards[i].animate(this.cards[i].location, 400, i - ~~(this.cards.length / 2));

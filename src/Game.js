@@ -46,7 +46,7 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Game extends C
       await this.wait(1000);
       instruction = await functions.get('fetchInstruction', game.id);
       if (instruction && (instruction.id !== lastInstruction_id || !lastInstruction_id)) {
-        client.execute(instruction);
+        client.readInstruction(instruction);
         lastInstruction_id = instruction.id;
       }
     }

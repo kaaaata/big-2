@@ -17,20 +17,8 @@ export default class Big2Game {
     this.gameActive = false;
     this.game_id = game_id;
     
-    this.initGame.call(this);;
+    this.initGame.call(this);
   };
-
-  execute(instruction) {
-    const { player, action, cards } = instruction;
-
-    if (action === 'playActiveCards') {
-      this.table.unshift(new Big2Hand(this.hands[player].playActiveCards()));
-      this.renderTable();
-      this.hands[player].render();
-    } else if (action.startsWith('activate')) {
-      this.hands[player].activate(cards);
-    }
-  }
 
   renderTable() {
     for (let i = 0; i < this.table.length; i++) {
@@ -41,18 +29,41 @@ export default class Big2Game {
     }
   }
 
+  async newInstruction(action, cards = null) {
+    const instruction = {
+      id: shortid.generate(),
+      game_id: this.game_id,
+      player: this.you,
+      action,
+      cards,
+    };
+    await functions.post('sendInstruction', instruction);
+  }
+
+  readInstruction(instruction) {
+    const { player, action, cards } = instruction;
+
+    if (action === 'playActiveCards') {
+      this.table.unshift(new Big2Hand(this.hands[player].playActiveCards()));
+      this.renderTable();
+      this.hands[player].render();
+    } else if (action === 'activate') {
+      this.hands[player].activate(cards);
+    } else if (action === 'pass') {
+      this.hands[player].deactivateAllCards();
+      if (player !== player.you) this.gameActive = true;
+    }
+  }
+
   initGame() {
     document.onkeyup = async(e) => {
 			if (this.gameActive) {
         if (e.keyCode === 13) { // enter
-          const instruction = {
-            id: shortid.generate(),
-            player: this.you,
-            action: 'playActiveCards',
-            cards: null,
-            game_id: this.game_id,
-          };
-          await functions.post('sendInstruction', instruction);
+          // this.gameActive = false;
+          await this.newInstruction('playActiveCards');
+        } else if (e.keyCode === 80) {
+          // this.gameActive = false;
+          await this.newInstruction('pass')
         }
       }
     };

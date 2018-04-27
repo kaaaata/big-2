@@ -59,8 +59,6 @@ def sendInstruction(newInstruction):
   return instructions.addInstruction(newInstruction)
 
 def live():
-  print(live_games.live_games)
-  print(games.games)
   deaths = live_games.kill()
   instructions.kill(deaths)
   games.kill(deaths)

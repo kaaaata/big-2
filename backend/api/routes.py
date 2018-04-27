@@ -1,26 +1,24 @@
 from django.http import JsonResponse
-from . import models
+from api.models import data
 import json
 
-def index(request):
-  print('you succesuflly got the endpoint, printing data...')
-  if request.method == 'POST':
-    print(json.loads(request.body))
-  return JsonResponse({ 'response': 'a json response' })
-
+# models/data.py
 def allGames(req):
-  return JsonResponse({ 'res': models.allGames() })
+  return JsonResponse({ 'res': data.allGames() })
 def newGame(req):
   req = json.loads(req.body)
-  return JsonResponse({ 'res': models.newGame(req) })
+  return JsonResponse({ 'res': data.newGame(req) })
   
 def fetchInstruction(req):
   req = json.loads(req.body)
-  return JsonResponse({ 'res': models.fetchInstruction(req) })
+  return JsonResponse({ 'res': data.fetchInstruction(req) })
 def sendInstruction(req):
   req = json.loads(req.body)
-  return JsonResponse({ 'res': models.sendInstruction(req) })
+  return JsonResponse({ 'res': data.sendInstruction(req) })
 
 def stayAlive(req):
   req = json.loads(req.body)
-  return JsonResponse({ 'res': models.stayAlive(req) })
+  return JsonResponse({ 'res': data.stayAlive(req) })
+
+
+# models/gameplay.py
