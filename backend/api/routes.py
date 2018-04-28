@@ -7,23 +7,18 @@ import json
 def allGames(req):
   return JsonResponse({ 'res': data.allGames() })
 def newGame(req):
-  req = json.loads(req.body)
-  return JsonResponse({ 'res': data.newGame(req) })
+  return JsonResponse({ 'res': data.newGame(json.loads(req.body)) })
   
 def fetchInstruction(req):
-  req = json.loads(req.body)
-  return JsonResponse({ 'res': data.fetchInstruction(req) })
+  return JsonResponse({ 'res': data.fetchInstruction(json.loads(req.body)) })
 def sendInstruction(req):
-  req = json.loads(req.body)
-  return JsonResponse({ 'res': data.sendInstruction(req) })
+  return JsonResponse({ 'res': data.sendInstruction(json.loads(req.body)) })
 
 def stayAlive(req):
-  req = json.loads(req.body)
-  return JsonResponse({ 'res': data.stayAlive(req) })
+  return JsonResponse({ 'res': data.stayAlive(json.loads(req.body)) })
 
 # models/gameplay.py
 def validPlay(req):
-  req = json.loads(req.body)
   print(req)
   print(gameplay.validPlay(req))
-  return JsonResponse({ 'res': gameplay.validPlay(req) })
+  return JsonResponse({ 'res': gameplay.validPlay(json.loads(req.body)) })
