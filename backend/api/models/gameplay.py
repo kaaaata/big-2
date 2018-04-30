@@ -101,19 +101,22 @@ def allCombinations(a, size):
 
 def allStraights(hand):
   # take hand like [x, x] and return all possible straights like [[x, ... , x], [x, ... , x]] 
+  def rank(card):
+    return card // 10
   ret = []
-  ranks = [i // 10 for i in hand]
+  ranks = [rank(i) for i in hand]
 
   for i in range(len(hand)):
-    if (hand[i] + 10 in ranks) and (hand[i] + 20 in ranks) and (hand[i] + 30 in ranks) and (hand[i] + 40 in ranks):      
+    if (rank(hand[i]) + 1 in ranks) and (rank(hand[i]) + 2 in ranks) and (rank(hand[i]) + 3 in ranks) and (rank(hand[i]) + 4 in ranks):      
       straights = [[hand[i]]]
       additions = []
 
-      for next_rank in [10, 20, 30, 40]:
-        all_next_rank = [j for j in hand if j // 10 == ranks[i] + next_rank]
+      for next_rank in [1, 2, 3, 4]:
+        all_next_rank = [j for j in hand if rank(j) == ranks[i] + next_rank]
         for next_rank_card in all_next_rank:
           for straight in straights:
             additions.append(straight + [next_rank_card])
+
         straights = additions
         additions = []
       

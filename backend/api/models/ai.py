@@ -77,46 +77,43 @@ class _ai:
       # 2. partition by rank [[x, x], [x, x]]
       partition_ranks = [[filter_unplayables[0]]]
       for i in range(1, len(filter_unplayables)):
-        if partition_ranks[len(partition_ranks) - 1][0] == filter_unplayables[i]:
+        if filter_unplayables[i] // 10 == partition_ranks[len(partition_ranks) - 1][0] // 10:
           partition_ranks[len(partition_ranks) - 1].append(filter_unplayables[i])
         else:
           partition_ranks.append([filter_unplayables[i]])
       # 3. add all perms in each rank division
       for partition in partition_ranks:
-        ret += [gameplay.allCombinations(partition, x)]
+        ret += gameplay.allCombinations(partition, x)
     # 4. finish
-    return sorted(ret, key = lambda i: gameplay.parseHand(i)['power'])
-  def add5x(self, hand, x):
+
+    return ret if x == 4 else sorted(ret, key = lambda i: gameplay.parseHand(i)['power'])
+  def all5x(self, hand, x):
     # get straight flushes, four of a kinds, full houses, flushes, and straights
     if len(hand) < 5: # end immediately if no playable hands
       return []
     ret = []
     if x == '4x':
       # 1. get all fours
-      fours = self.all1x2x3x4x(4) # like [[x, x, x, x]]
+      fours = self.all1x2x3x4x(hand, 4) # like [[x, x, x, x]]
       # 2. for each four, add a single of every other rank
-      for i in fours:
-        for j in hand:
-          if j // 10 != i[0] // 10:
-            i.append(j)
-      # 3. finish
-      ret += fours
+      for four in fours:
+        for i in hand:
+          if i // 10 != four[0] // 10:
+            ret.append(four + [i])
     elif x == 'full house':
       # 1. get all pairs and triplets
-      pairs = self.all1x2x3x4x(2)
-      triplets = self.all1x2x3x4x(3)
+      pairs = self.all1x2x3x4x(hand, 2)
+      triplets = self.all1x2x3x4x(hand, 3)
       # 2. for each pair, add a triplet of every other rank
-      for i in pairs:
-        for j in triplets:
-          if j[0] // 10 != i[0] // 10:
-            i += j
-      # 3. finish
-      ret += pairs
+      for pair in pairs:
+        for trip in triplets:
+          if trip[0] // 10 != pair[0] // 10:
+            ret.append(pair + trip)
     else:
       # generate flushes and straights without returning. the intersection of these will be straight flushes
       # 1. generate all flushes with unique max rank with lowest 4 as fodder
       flushes = []
-      for suit in [3, 2, 1, 0]:
+      for suit in range(4):
         filter_suit = [i for i in hand if i % 10 == suit]
         if len(filter_suit) < 5:
           continue
