@@ -154,7 +154,7 @@ export default class Big2Game {
         }
       } else {
         // deactivate all cards if you try to play something not on your turn
-        await this.newInstruction('deactivateAllCards');
+        if (e.keyCode === 13 || e.keyCode === 80) await this.newInstruction('deactivateAllCards');
       }
     };
 

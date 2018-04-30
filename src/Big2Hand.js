@@ -47,6 +47,7 @@ export default class Big2Hand {
   }
 
   render(destination = null, delay = 0) {
+    this.cards.sort((a, b) => a.big2rank - b.big2rank);
     this.cards.forEach((card, index) => {
       card.$el.style.zIndex = index;
       card.animate(destination || card.location, 400, index - ~~(this.cards.length / 2), delay);
