@@ -48,9 +48,9 @@ export default class Big2Game {
       this.hands[player].render();
       // check win, otherwise proceed with gameplay
       if (!this.hands[this.p1].cards.length) {
-        setTimeout(async() => await this.newInstruction('p1 wins'), 2000);    
+        setTimeout(async() => await this.newInstruction('p1 wins'), 1000);
       } else if (!this.hands[this.p2].cards.length) {
-        setTimeout(async() => await this.newInstruction('p2 wins'), 2000);    
+        setTimeout(async() => await this.newInstruction('p2 wins'), 1000);
       } else {
         if (player !== this.you) this.gameActive = true;
       }
@@ -62,8 +62,6 @@ export default class Big2Game {
       this.hands[player].deactivateAllCards();
       this.table.fadeOut();
       if (player !== this.you) this.gameActive = true;
-    } else if (action === 'p1 wins' || action === 'p2 wins') {
-      await this.newInstruction('new game');
     } else if (action === 'new game') {
       this.initGame(cards.p1_hand, cards.p2_hand, cards.table);
     }

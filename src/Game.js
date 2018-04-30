@@ -63,7 +63,7 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Game extends C
     let instruction = null; // receive the latest instruction from server in this variable
     let lastInstruction_id = null; // keep track of the last instruction processed
     while (true) {
-      // wait 1 second
+      // server ping tick frequency
       await this.wait(100);
       // pull down instruction from server
       instruction = await functions.get('fetchInstruction', game.id);
@@ -78,6 +78,8 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Game extends C
           } else {
             this.setState({ p2_wins: this.state.p2_wins + 1 });
           }
+          await this.wait(1000);
+          await client.newInstruction('new game');
         }
         // read the instruction to the client
         client.readInstruction(instruction);
