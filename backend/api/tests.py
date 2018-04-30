@@ -74,6 +74,6 @@ class aiTestCase(SimpleTestCase):
     self.assertIsInstance(test_ai.train(0, 0), list)
     print('--> ai training was successful (game finished) for 1 game')
 
-    repetitions = 300
+    repetitions = 150
     self.assertIsInstance(test_ai.runTraining(repetitions), list)
     print('--> ai training was successful for ' + str(361 * repetitions) + ' games')

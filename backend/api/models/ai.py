@@ -1,6 +1,7 @@
 # ai.py stores the algorithm to calculate the best hand for the AI to play, given certain inputs.
 
 from . import gameplay
+import math
 
 # a class to store all AI related functions
 class _ai:
@@ -21,7 +22,9 @@ class _ai:
         for i in range(repetitions):
           self.train(aggression_i, aggression_j)
     for i in range(min_aggression, max_aggression + 1):
-      print('Aggression ' + str(i) + ': ' + str(self.wins.count(i)) + ' wins')
+      wins = self.wins.count(i)
+      winrate = round(100 * wins / (repetitions * ((max_aggression - min_aggression + 1) * 2 - 1)))
+      print('Aggression ' + str(i) + ': ' + str(wins) + ' wins, ' + str(winrate) + '% winrate')
     return self.wins
   def train(self, aggression_i, aggression_j):
     deck = gameplay.generateRandomDeck()
