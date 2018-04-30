@@ -33,15 +33,10 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Home extends C
     const { games, player, syncGames, setGame } = this.props;
     const newGame = {
       id: shortid.generate(),
-      name: '',
       player,
     };
 
     if (player.name === '') return alert('Please enter your name.');
-    while (newGame.name === '') {
-      newGame.name = prompt('Please enter a name for your game: ');
-    }
-    if (!newGame.name) return;
     const game = await functions.post('newGame', newGame);
     setGame(game);
     syncGames(await functions.post('allGames'));

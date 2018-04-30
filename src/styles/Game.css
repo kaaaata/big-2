@@ -1,7 +1,29 @@
-.game .players {
-  height: 100px;
-  border: solid red; }
-.game .client #container {
+.game .client, .game .client #container {
   width: 800px;
-  height: 600px;
-  border: solid black; }
+  height: 600px; }
+
+.game .title {
+  text-align: center;
+  font-size: 48px;
+  height: 45px; }
+.game .player {
+  text-align: center;
+  font-size: 36px; }
+  .game .player.top {
+    margin-top: 25px; }
+.game .client {
+  margin: auto; }
+  .game .client #container {
+    border-radius: 25px;
+    box-shadow: 4px 4px 16px teal;
+    background-color: rgba(255, 255, 255, 0.3);
+    position: relative;
+    top: 0;
+    left: 0;
+    -webkit-transform: none;
+    -moz-transform: none;
+    -o-transform: none;
+    -ms-transform: none;
+    transform: none; }
+    .game .client #container .card.rank10:before, .game .client #container .card.rank10:after {
+      width: 0.6rem; }

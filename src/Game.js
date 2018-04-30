@@ -20,6 +20,8 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Game extends C
     super();
     this.state = {
       interval: null,
+      p1_wins: 0,
+      p2_wins: 0,
     };
   }
 
@@ -54,6 +56,11 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Game extends C
         // if a player wins, do this...
         if (instruction.action === 'p1 wins' || instruction.action === 'p2 wins') {
           // put something here to determine whether a new game should be booted up
+          if (instruction.action === 'p1 wins') {
+            this.setState({ p1_wins: this.state.p1_wins + 1 });
+          } else {
+            this.setState({ p2_wins: this.state.p2_wins + 1 });
+          }
         }
         // read the instruction to the client
         client.readInstruction(instruction);
@@ -68,18 +75,21 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Game extends C
   }
 
   render() {
-    const { players } = this.props;
+    const { p1_wins, p2_wins } = this.state;
+    const { player, players, game } = this.props;
+    const opponent = players[1]
+      ? (players[1].id === player.id ? players[0].name : players[1].name)
+      : null;
     
     return (
       <section className="game">
-        <article className="players">
-          <p>Player 1: {players[0].name}</p>
-          <p>Player 2: {players[1] ? players[1].name : 'waiting...'}</p>
-        </article>
+        <article className="title">Big 2</article>
+        <article className="player top">P2: {opponent || 'waiting for player...'} ({p2_wins} wins)</article>
         <article className="client">
           <link rel="stylesheet" href="example.css" />
           <div id="container"></div>
         </article>
+        <article className="player bottom">P1: {player.name} ({p1_wins} wins)</article>
       </section>
     );
   }

@@ -96,18 +96,18 @@ export default class Big2Game {
         };
 
         if (destination === 'top') {
-          animateArgs.y = 50;
+          animateArgs.y = 75;
         } else if (destination === 'table') {
           animateArgs.y = 300;
         } else if (destination === 'bottom') {
-          animateArgs.y = 550;
+          animateArgs.y = 525;
         } else if (destination === 'trash') {
           animateArgs.y = -200;
         } else if (destination === 'activate') {
           if (card.location === 'top') {
-            animateArgs.y = card.active ? 50 : 70;
+            animateArgs.y = card.active ? 75 : 95;
           } else if (card.location === 'bottom') {
-            animateArgs.y = card.active ? 550 : 530;
+            animateArgs.y = card.active ? 525 : 505;
           }
           animateArgs.duration = 250;
           card.active = !card.active;

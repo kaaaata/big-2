@@ -1,10 +1,45 @@
+%game-dimensions
+  width: 800px
+  height: 600px
+  
 .game
-  .players
-    height: 100px
-    border: solid red
+  .title
+    text-align: center
+    font-size: 48px
+    height: 45px
+  .player
+    text-align: center
+    font-size: 36px
+    &.top
+      margin-top: 25px // to roughly match margin in public/example.css
   .client
+    @extend %game-dimensions  
+    margin: auto
     #container
-      width: 800px
-      height: 600px
-      border: solid black
-    
+      @extend %game-dimensions  
+      border-radius: 25px
+      box-shadow: 4px 4px 16px teal
+      background-color: rgba(255, 255, 255, 0.3)
+      // reset css in public/example.css for #container div
+      position: relative
+      top: 0
+      left: 0
+      -webkit-transform: none
+      -moz-transform: none
+      -o-transform: none
+      -ms-transform: none
+      transform: none
+      // original code
+      // #container {
+      //   position: fixed;
+      //   top: calc(50% + 1.5rem);
+      //   left: 50%;
+      //   -webkit-transform: translate3d(-50%, -50%, 0);
+      //   -moz-transform: translate3d(-50%, -50%, 0);
+      //   -o-transform: translate3d(-50%, -50%, 0);
+      //   -ms-transform: translate3d(-50%, -50%, 0);
+      //   transform: translate3d(-50%, -50%, 0);
+      // }
+      // fix bugged appearance of 10 cards
+      .card.rank10:before, .card.rank10:after
+        width: 0.6rem // previously 0.55rem made 1 and 0 in '10' be on different lines

@@ -22,7 +22,6 @@ class Games:
 
     game = {
       'id': newGame['id'],
-      'name': newGame['name'],
       # all players and spectators have id, name, and life (representing whether they are active or not)
       'players': [
         { 'id': newGame['player']['id'], 'name': newGame['player']['name'], 'life': 7 }, 
