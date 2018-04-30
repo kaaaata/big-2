@@ -7,7 +7,7 @@ class aiTestCase(SimpleTestCase):
   def setUp(self):
     ai._ai()
 
-  def test_ai(self):
+  def test_1x2x3x4x_and_5x(self):
     test_ai = ai._ai()
     self.assertEqual(test_ai.wins, [])
     print('--> AI class got initialized')
@@ -32,4 +32,8 @@ class aiTestCase(SimpleTestCase):
     self.assertEqual(test_ai.all5x([31, 41, 51, 61, 71, 81, 92], 'straight flush'), [[31, 41, 51, 61, 71], [41, 51, 61, 71, 81]])
     print('--> all5x works for straight flush')
 
+  def test_possibilities(self):
+    test_ai = ai._ai()
+    self.assertEqual(True, True)
+    print('--> True')
     
