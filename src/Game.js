@@ -44,7 +44,7 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Game extends C
       await functions.post('stayAlive', 'dummy id'); // keep the dummy player alive for development
       syncGames(await functions.get('allGames'));
       setGame(this.props.games.filter(item => item.id === this.props.game.id)[0]);
-    }, 5000) });
+    }, 1000) });
 
     // start a game when a new player joins the P2 slot
     while (true) {

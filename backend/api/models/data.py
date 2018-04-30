@@ -9,6 +9,7 @@ class Games:
   def __init__(self):
     self.games = []
     self.instructions = []
+    self.startingLife = 3
 
   # self.games methods
   def generateRandomDeck(self):
@@ -24,8 +25,8 @@ class Games:
       'id': newGame['id'],
       # all players and spectators have id, name, and life (representing whether they are active or not)
       'players': [
-        { 'id': newGame['player']['id'], 'name': newGame['player']['name'], 'life': 7 }, 
-        # { 'id': 'dummy id', 'name': 'dummy player 2', 'life': 7 }, # dummy player for development
+        { 'id': newGame['player']['id'], 'name': newGame['player']['name'], 'life': self.startingLife }, 
+        # { 'id': 'dummy id', 'name': 'dummy player 2', 'life': self.startingLife }, # dummy player for development
       ],
       'p1_hand': deck[:18],
       'p2_hand': deck[18:36],
@@ -38,7 +39,7 @@ class Games:
   def joinGame(self, gameInfo):
     # join a player into a game as a player, or if there is no room, as a spectator, returning the game object
     game_id = gameInfo['game_id']
-    player = { 'id': gameInfo['player']['id'], 'name': gameInfo['player']['name'], 'life': 7 }
+    player = { 'id': gameInfo['player']['id'], 'name': gameInfo['player']['name'], 'life': self.startingLife }
 
     for i in range(len(self.games)):
       if self.games[i]['id'] == game_id:
@@ -47,7 +48,7 @@ class Games:
         else:
           self.games[i]['spectators'].append(player)
         return self.games[i]
-  # decrease player life every 1s if life reaches 0, player is 'disconnected'. life resets to 7 every 5s from client.
+  # decrease player life every 1s if life reaches 0, player is 'disconnected'. life resets to self.startingLife every 5s from client.
   def age(self):
     game_ids_to_delete = []
     for i in range(len(self.games)):
@@ -65,10 +66,10 @@ class Games:
     for i in range(len(self.games)):
       for j in range(len(self.games[i]['players'])):
         if self.games[i]['players'][j]['id'] == player_id:
-          self.games[i]['players'][j]['life'] = 7
+          self.games[i]['players'][j]['life'] = self.startingLife
       for j in range(len(self.games[i]['spectators'])):
         if self.games[i]['spectators'][j]['id'] == player_id:
-          self.games[i]['spectators'][j]['life'] = 7
+          self.games[i]['spectators'][j]['life'] = self.startingLife
 
   # self.instructions methods
   def fetchInstruction(self, game_id):
