@@ -33,10 +33,11 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Game extends C
 
   async componentDidMount() {
     const { players, player, game, syncGames } = this.props;
-    const client = new Big2Client(document.getElementById('container'), players, player, game.id);
+    const client = new Big2Client(document.getElementById('container'), game);
 
     this.setState({ interval: setInterval(async() => {
-      await functions.post('stayAlive', game.id);
+      await functions.post('stayAlive', player.id);
+      await functions.post('stayAlive', 'dummy id'); // keep the dummy player alive for development
       syncGames(await functions.get('allGames'));
     }, 5000) });
 

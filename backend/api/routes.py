@@ -8,6 +8,8 @@ def allGames(req):
   return JsonResponse({ 'res': data.allGames() })
 def newGame(req):
   return JsonResponse({ 'res': data.newGame(json.loads(req.body)) })
+def joinGame(req):
+  return JsonResponse({ 'res': data.joinGame(json.loads(req.body)) })
   
 def fetchInstruction(req):
   return JsonResponse({ 'res': data.fetchInstruction(json.loads(req.body)) })
@@ -19,6 +21,7 @@ def stayAlive(req):
 
 # models/gameplay.py
 def validPlay(req):
-  print(req)
-  print(gameplay.validPlay(req))
+  request = json.loads(req.body)
+  print(request)
+  print(gameplay.validPlay(request))
   return JsonResponse({ 'res': gameplay.validPlay(json.loads(req.body)) })

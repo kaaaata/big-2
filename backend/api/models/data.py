@@ -1,21 +1,64 @@
 # data.py stores shared data on server for sharing with clients.
 
-from threading import Timer
 # from django.db import models
+from threading import Timer
+from random import shuffle
 
 class Games:
   def __init__(self):
     self.games = []
   def newGame(self, newGame):
+    # initialize a new game with one player in the p1 slot, returning the newly created game object
+    # generate starting hands from randomized deck of big2ranks
+    deck = [i for i in list(range(30, 154)) if i % 10 <= 3]
+    shuffle(deck)
+
     game = {
       'id': newGame['id'],
       'name': newGame['name'],
-      'players': [newGame['player'], { 'id': 'dummy id', 'name': 'dummy player 2' }],
+      # all players and spectators have id, name, and life (representing whether they are active or not)
+      'players': [
+        { 'id': newGame['player']['id'], 'name': newGame['player']['name'], 'life': 7 }, 
+        { 'id': 'dummy id', 'name': 'dummy player 2', 'life': 7 },
+      ],
+      'p1_hand': deck[:18],
+      'p2_hand': deck[18:36],
+      'table': [],
+      'spectators': []
     }
+
     self.games = [game] + self.games
-    return self.games
-  def kill(self, deaths):
-    self.games = [i for i in self.games if i['id'] not in deaths]
+    return game
+  def joinGame(self, game_id, player):
+    # join a player into a game as a player, or if there is no room, as a spectator, returning the game object
+    for i in range(len(self.games)):
+      if self.games[i]['id'] == game_id:
+        if len(self.games[i]['players']) == 1:
+          self.games[i]['players'].append(player)
+        else:
+          self.games[i]['spectators'].append(player)
+        return self.games[i]
+  # decrease player life every 1s if life reaches 0, player is 'disconnected'. life resets to 7 every 5s from client.
+  def age(self):
+    game_ids_to_delete = []
+    for i in range(len(self.games)):
+      for j in range(len(self.games[i]['players'])):
+        self.games[i]['players'][j]['life'] -= 1
+        if self.games[i]['players'][j]['life'] == 0:
+          game_ids_to_delete.append(self.games[i]['id']) # probably should not delete the game right away but let's work on this later
+      for j in range(len(self.games[i]['spectators'])):
+        self.games[i]['spectators'][j]['life'] -= 1
+        if self.games[i]['spectators'][j]['life'] == 0:
+          del self.games[i]['spectators'][j]
+    self.games = [i for i in self.games if i['id'] not in game_ids_to_delete]
+  def stayAlive(self, player_id):
+    for i in range(len(self.games)):
+      for j in range(len(self.games[i]['players'])):
+        if self.games[i]['players'][j]['id'] == player_id:
+          self.games[i]['players'][j]['life'] = 7
+      for j in range(len(self.games[i]['spectators'])):
+        if self.games[i]['spectators'][j]['id'] == player_id:
+          self.games[i]['spectators'][j]['life'] = 7
 
 class Instructions:
   def __init__(self):
@@ -29,29 +72,12 @@ class Instructions:
   def kill(self, deaths):
     self.instructions = [i for i in self.instructions if i['game_id'] not in deaths]
 
-class LiveGames:
-  def __init__(self):
-    self.liveGames = []
-  def birth(self, game_id):
-    self.liveGames.append({ 'game_id': game_id, 'life': 7 })
-  def kill(self):
-    dead_games = [i['game_id'] for i in self.liveGames if i['life'] == 0]
-    self.liveGames = [{ 'game_id': i['game_id'], 'life': i['life'] - 1 } for i in self.liveGames if i['life'] > 0]
-    return dead_games
-  def stayAlive(self, game_id):
-    self.liveGames = [{ 'game_id': i['game_id'], 'life': 7 } for i in self.liveGames if i['game_id'] == game_id]
-    return game_id
-
-
 games = Games()
-liveGames = LiveGames()
 instructions = Instructions()
-
 
 def allGames():
   return games.games
 def newGame(game):
-  liveGames.birth(game['id'])
   return games.newGame(game)
 
 def fetchInstruction(game_id):
@@ -60,11 +86,10 @@ def sendInstruction(newInstruction):
   return instructions.addInstruction(newInstruction)
 
 def live():
-  deaths = liveGames.kill()
-  instructions.kill(deaths)
-  games.kill(deaths)
+  games.age()
+  print(len(games.games))
   Timer(1, live).start()
 Timer(1, live).start()
 
-def stayAlive(game_id):
-  liveGames.stayAlive(game_id)
+def stayAlive(player_id):
+  games.stayAlive(player_id)

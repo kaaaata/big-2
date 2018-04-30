@@ -42,8 +42,9 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Home extends C
       newGame.name = prompt('Please enter a name for your game: ');
     }
     if (!newGame.name) return;
-    setGame(newGame);
-    syncGames(await functions.post('newGame', newGame));
+    const game = await functions.post('newGame', newGame);
+    setGame(game);
+    syncGames(await functions.post('allGames'));
     this.setState({ redirect: true });
   }
 

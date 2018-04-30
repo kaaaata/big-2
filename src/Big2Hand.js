@@ -42,11 +42,13 @@ export default class Big2Hand {
     this.cards.forEach(card => {
       card.$el.style.opacity = 0;
     });
+    this.cards = [];
   }
 
-  render(destination = null) {
+  render(destination = null, delay = 0) {
     this.cards.forEach((card, index) => {
-      card.animate(destination || card.location, 400, index - ~~(this.cards.length / 2));
+      card.$el.style.zIndex = index;
+      card.animate(destination || card.location, 400, index - ~~(this.cards.length / 2), delay);
     });
   }
 }

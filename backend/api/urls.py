@@ -6,6 +6,7 @@ urlpatterns = [
   # models/data.py
   path('allGames/', routes.allGames, name='allGames'),
   path('newGame/', routes.newGame, name='newGame'),
+  path('joinGame/', routes.joinGame, name='joinGame'),
 
   path('fetchInstruction/', routes.fetchInstruction, name='fetchInstruction'),
   path('sendInstruction/', routes.sendInstruction, name='sendInstruction'),
