@@ -32,7 +32,7 @@ def parseHand(hand):
   else:
     return None
   
-def pokerPower(hand, rank, suits):
+def pokerPower(hand, ranks, suits):
   # Inputs: hand [120, 121] ranks [12, 12] suits [1, 2]
   # Output: power
   # 1. straight: +1000 power (JQKA2 is highest, 23456 is lowest)

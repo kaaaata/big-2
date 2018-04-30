@@ -64,7 +64,7 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Game extends C
     let lastInstruction_id = null; // keep track of the last instruction processed
     while (true) {
       // wait 1 second
-      await this.wait(1000);
+      await this.wait(100);
       // pull down instruction from server
       instruction = await functions.get('fetchInstruction', game.id);
       // if instruction hasn't been already processed, process it

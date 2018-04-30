@@ -121,3 +121,48 @@ STATIC_URL = '/static/'
 
 
 # Below this line are custom settings
+def skip_annoying_messages(record):
+    annoying_messages = (
+        'POST /api/fetchInstruction/',
+		'POST /api/allGames/',
+		'POST /api/stayAlive/',
+	)
+    if record.args[0].startswith(annoying_messages):  # filter whatever you want
+        return False
+    return True
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'filters': {
+        # use Django's built in CallbackFilter to point to your filter 
+        'skip_annoying_messages': {
+            '()': 'django.utils.log.CallbackFilter',
+            'callback': skip_annoying_messages
+        }
+    },
+    'formatters': {
+        # django's default formatter
+        'django.server': {
+            '()': 'django.utils.log.ServerFormatter',
+            'format': '[%(server_time)s] %(message)s',
+        }
+    },
+    'handlers': {
+        # django's default handler...
+        'django.server': {
+            'level': 'INFO',
+            'filters': ['skip_annoying_messages'],  # <- ...with one change
+            'class': 'logging.StreamHandler',
+            'formatter': 'django.server',
+        },
+    },
+    'loggers': {
+        # django's default logger
+        'django.server': {
+            'handlers': ['django.server'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    }
+}
