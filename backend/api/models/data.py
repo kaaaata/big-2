@@ -2,7 +2,6 @@
 
 # from django.db import models
 from threading import Timer
-from random import shuffle
 from . import gameplay
 
 # a class to store all game data in memory

@@ -1,5 +1,7 @@
 # gameplay.py stores algorithms pertaining to gameplay logic. there is no shared data here.
 
+from random import shuffle
+
 def generateRandomDeck():
     deck = [i for i in list(range(30, 154)) if i % 10 <= 3]
     shuffle(deck)

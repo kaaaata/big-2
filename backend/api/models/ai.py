@@ -6,19 +6,27 @@ from . import gameplay
 class _ai:
   def __init__(self):
     self.wins = []
-  def startTraining(self, repetitions):
+  def runTraining(self, repetitions):
     # for all possible aggression levels, play #repetitions games against each other level of aggression. 
     # min aggression: 0 (always play smallest combination)
-    # max aggrssion: 18 (always play largest combination) 
-    # 1 repetition = 18^2 = 361 games 
-    for aggression_i in range(19):
-      for aggression_j in range(19):
+    # max aggression: 18 (always play largest combination) 
+    # 1 repetition = 18^2 = 361 games
+
+    # parameters
+    min_aggression = 0
+    max_aggression = 4
+
+    for aggression_i in range(min_aggression, max_aggression + 1):
+      for aggression_j in range(min_aggression, max_aggression + 1):
         for i in range(repetitions):
           self.train(aggression_i, aggression_j)
+    for i in range(min_aggression, max_aggression + 1):
+      print('Aggression ' + str(i) + ': ' + str(self.wins.count(i)) + ' wins')
+    return self.wins
   def train(self, aggression_i, aggression_j):
     deck = gameplay.generateRandomDeck()
-    i_hand = deck[:18]
-    j_hand = deck[18:36]
+    i_hand = sorted(deck[:18])
+    j_hand = sorted(deck[18:36])
     table = []
     while True:
       possibilities = self.possibilities(i_hand, table)
@@ -27,43 +35,53 @@ class _ai:
       i_hand = [i for i in i_hand if i not in play]
       if len(i_hand) == 0:
         self.wins.append(aggression_i)
-        return;
+        break;
       possibilities = self.possibilities(j_hand, table)
       play = [] if possibilities == [] else (possibilities[0] if (18 - len(i_hand)) > aggression_j else possibilities[len(possibilities) - 1])
       table = play
       j_hand = [i for i in j_hand if i not in play]
       if len(j_hand) == 0:
         self.wins.append(aggression_j)
-        return;
+        break;
+    return []
   def possibilities(self, hand, table):
     ret = []
     table = gameplay.parseHand(table)
-
     if table == None:
-      ret += self.all5x(hand, 'straight')
+      ret += self.all1x2x3x4x(hand, 1)
       ret += self.all1x2x3x4x(hand, 2)
       ret += self.all1x2x3x4x(hand, 3)
+      ret += self.all5x(hand, 'straight')
       ret += self.all5x(hand, 'flush')
-      ret += self.all1x2x3x4x(hand, 1)
       ret += self.all5x(hand, 'full house')
       ret += self.all5x(hand, '4x')
       ret += self.all5x(hand, 'straight flush')
       return ret
-    elif table.combo in ['1x', '2x', '3x']:
+    elif table['combo'] in ['1x', '2x', '3x']:
       ret += self.all1x2x3x4x(hand, int(table['combo'][0]))
-    elif table.combo == '5x':
-      if table.power < 2000:
+    elif table['combo'] == '5x':
+      if table['power'] < 2000:
         ret += self.all5x(hand, 'straight')
-      if table.power < 3000:
+      if table['power'] < 3000:
         ret += self.all5x(hand, 'flush')
-      if table.power < 4000:
+      if table['power'] < 4000:
         ret += self.all5x(hand, 'full house')
-      if table.power < 5000:
+      if table['power'] < 5000:
         ret += self.all5x(hand, '4x')
-      if table.power < 6000:
+      if table['power'] < 6000:
         ret += self.all5x(hand, 'straight flush') # ai will always add straight flush.
 
-    return [i for i in ret if gameplay.parseHand(table)['power'] > (table['power'] if table else 0)]
+    # remove duplicates (due to straight/flush/straight flush duplication) (list(set(ret)) throws error for some reason)
+    new_ret = []
+    for i in ret:
+      if i not in new_ret:
+        new_ret.append(i)
+    ret = new_ret
+
+    # filter out hands that do not beat the table, then sort
+    ret = [i for i in ret if gameplay.parseHand(i)['power'] > (table['power'] if table else 0)]
+    return sorted(ret, key = lambda i: gameplay.parseHand(i)['power'])
+
   def all1x2x3x4x(self, hand, x):
     # get all possible singles, pairs, triplets, or fours (x = 1, 2, 3, 4)
     ret = []
