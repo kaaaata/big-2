@@ -52,7 +52,7 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Home extends C
     const { player, setPlayer, syncGames } = this.props;
     const newPlayer = {
       id: shortid.generate(),
-      name: '',
+      name: 'Cat',
     };
     
     setPlayer(newPlayer);

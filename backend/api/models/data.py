@@ -4,14 +4,21 @@
 from threading import Timer
 from random import shuffle
 
+# a class to store all game data in memory
 class Games:
   def __init__(self):
     self.games = []
+    self.instructions = []
+
+  # self.games methods
+  def generateRandomDeck(self):
+    deck = [i for i in list(range(30, 154)) if i % 10 <= 3]
+    shuffle(deck)
+    return deck
   def newGame(self, newGame):
     # initialize a new game with one player in the p1 slot, returning the newly created game object
     # generate starting hands from randomized deck of big2ranks
-    deck = [i for i in list(range(30, 154)) if i % 10 <= 3]
-    shuffle(deck)
+    deck = self.generateRandomDeck()
 
     game = {
       'id': newGame['id'],
@@ -51,6 +58,7 @@ class Games:
         if self.games[i]['spectators'][j]['life'] == 0:
           del self.games[i]['spectators'][j]
     self.games = [i for i in self.games if i['id'] not in game_ids_to_delete]
+    self.instructions = [i for i in self.instructions if i['game_id'] not in game_ids_to_delete]
   def stayAlive(self, player_id):
     for i in range(len(self.games)):
       for j in range(len(self.games[i]['players'])):
@@ -60,20 +68,15 @@ class Games:
         if self.games[i]['spectators'][j]['id'] == player_id:
           self.games[i]['spectators'][j]['life'] = 7
 
-class Instructions:
-  def __init__(self):
-    self.instructions = []
+  # self.instructions methods
   def fetchInstruction(self, game_id):
     ret = [i for i in self.instructions if i['game_id'] == game_id]
     return ret[0] if ret != [] else None
   def addInstruction(self, newInstruction):
     self.instructions = [i for i in self.instructions if i['game_id'] != newInstruction['game_id']] + [newInstruction]
     return newInstruction
-  def kill(self, deaths):
-    self.instructions = [i for i in self.instructions if i['game_id'] not in deaths]
 
 games = Games()
-instructions = Instructions()
 
 def allGames():
   return games.games
@@ -81,15 +84,21 @@ def newGame(game):
   return games.newGame(game)
 
 def fetchInstruction(game_id):
-  return instructions.fetchInstruction(game_id)
+  return games.fetchInstruction(game_id)
 def sendInstruction(newInstruction):
-  return instructions.addInstruction(newInstruction)
-
-def live():
-  games.age()
-  print(len(games.games))
-  Timer(1, live).start()
-Timer(1, live).start()
+  if (newInstruction['action'] == 'new game'):
+    deck = games.generateRandomDeck()
+    newInstruction['cards'] = {
+      'p1_hand': deck[:18],
+      'p2_hand': deck[18:36],
+      'table': [],
+    }
+  return games.addInstruction(newInstruction)
 
 def stayAlive(player_id):
   games.stayAlive(player_id)
+
+def live():
+  games.age()
+  Timer(1, live).start()
+Timer(1, live).start()

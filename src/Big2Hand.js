@@ -23,12 +23,13 @@ export default class Big2Hand {
 
   playActiveCards() {
     const ret = [];
-    this.cards.forEach((card, index) => {
-      if (card.active) {
-        card.active = false;
-        ret.push(this.cards.splice(index, 1)[0]);
+    for (let i = 0; i < this.cards.length; i++) {
+      if (true) { // play all cards, for development
+      // if (this.cards[i].active) {
+        this.cards[i].active = false;
+        ret.push(this.cards.splice(i--, 1)[0]);
       }
-    });
+    }
     return ret;
   }
 

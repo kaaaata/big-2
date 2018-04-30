@@ -4,24 +4,26 @@ import shortid from 'shortid';
 import Big2Hand from './Big2Hand';
 
 export default class Big2Game {
-  constructor(container, game) {
-    // create the deck, initialize properties relevant to Big 2, and mount it
-    this.deck = window.Deck(); console.log('Deck: ', this.deck);
-    this.initDeck.call(this); 
-    this.deck.mount(container);
+  constructor(container, game, you) {
+    // create the deck, initialize properties relevant to Big 2, and mount it to the container HTML element
+    this.$container = container;
+    this.deck = null;
+    this.initDeckPropertiesAndMount();
 
     // game variables
-    this.p1 = game.players[0]; this.p2 = game.players[1];
-    this.hands = {
-      [this.p1.id]: new Big2Hand(this.deck.cards.filter(card => game.p1_hand.includes(card.big2rank))),
-      [this.p2.id]: new Big2Hand(this.deck.cards.filter(card => game.p2_hand.includes(card.big2rank))),
-    };
-    this.table = new Big2Hand(this.deck.cards.filter(card => game.table.includes(card.big2rank)));
-    this.you = game.players[0].id;
-    this.gameActive = false;
     this.game_id = game.id;
-    
-    this.initGame.call(this);
+    this.player1 = game.players[0]; this.player2 = game.players[1]; // assign entire player object to long variable
+    this.p1 = this.player1.id; this.p2 = this.player2.id; // assign id to short variable for easy hand referencing
+    this.you = you; // your player id
+    this.gameActive = false; // whether you can make a move (e.g. can't make a move during opponent's turn)
+    this.hands = {
+      [this.p1]: null,
+      [this.p2]: null,
+    };
+    this.table = null;
+
+    // initalize games with given player hands and table state
+    this.initGame(game.p1_hand, game.p2_hand, game.table);
   };
 
   async newInstruction(action, cards = null) {
@@ -32,10 +34,11 @@ export default class Big2Game {
       action,
       cards,
     };
+
     await functions.post('sendInstruction', instruction);
   }
 
-  readInstruction(instruction) {
+  async readInstruction(instruction) {
     const { player, action, cards } = instruction;
 
     if (action === 'playActiveCards') {
@@ -43,6 +46,7 @@ export default class Big2Game {
       this.table = new Big2Hand(this.hands[player].playActiveCards());
       this.table.render('table');
       this.hands[player].render();
+      this.checkWin();
     } else if (action === 'activate') {
       this.hands[player].activate(cards);
     } else if (action === 'deactivateAllCards') {
@@ -51,10 +55,28 @@ export default class Big2Game {
       this.hands[player].deactivateAllCards();
       this.table.fadeOut();
       if (player !== player.you) this.gameActive = true;
+    } else if (action === 'p1 wins' || action === 'p2 wins') {
+      await this.newInstruction('new game');
+    } else if (action === 'new game') {
+      this.initGame(cards.p1_hand, cards.p2_hand, cards.table);
     }
   }
 
-  initDeck() {
+  async checkWin() {
+    if (!this.hands[this.p1].cards.length) await this.newInstruction('p1 wins');
+    if (!this.hands[this.p2].cards.length) await this.newInstruction('p2 wins');
+  }
+
+  initDeckPropertiesAndMount() {
+    // unmount all cards in old deck, create new deck, and mount new deck
+    if (this.deck) { // i'm not sure whether unmounting is actually required...
+      this.deck.cards.forEach(card => {
+        card.unmount();
+      });
+    }
+    this.deck = window.Deck(); console.log('Deck: ', this.deck);
+    this.deck.mount(this.$container);
+
     this.deck.cards.forEach(card => {
 			// create Big-2 specific ranks. (3 - card.suit) is suit power. they are x10 to avoid floating point arithmetic errors.
 			card.big2rankWithoutSuit = card.rank === 1 ? 140 : (card.rank === 2 ? 150 : card.rank * 10);
@@ -72,6 +94,7 @@ export default class Big2Game {
           duration: 500,
           ease: 'quartOut',
         };
+
         if (destination === 'top') {
           animateArgs.y = 50;
         } else if (destination === 'table') {
@@ -105,15 +128,19 @@ export default class Big2Game {
     });
   }
 
-  initGame() {
+  initGame(p1_hand, p2_hand, table) {
+    // set keyboard events
     document.onkeyup = async(e) => {
 			if (this.gameActive) {
         if (e.keyCode === 13) { // enter
           // this.gameActive = false;
+          // if you have no cards active, do nothing
+          if (!this.hands[this.you].big2Ranks((card => card.active)).length) return;
           const play = {
             cards: this.hands[this.you].big2Ranks((card) => card.active),
             table: this.table.cards.length > 0 ? this.table.big2Ranks() : null,
           };
+
           if (await functions.post('validPlay', play)) {
             await this.newInstruction('playActiveCards');
           } else {
@@ -126,25 +153,33 @@ export default class Big2Game {
       }
     };
 
-    // render the initial deck, hands, table, and trash
+    // initialize hands and table
+    this.hands = {
+      [this.p1]: new Big2Hand(this.deck.cards.filter(card => p1_hand.includes(card.big2rank))),
+      [this.p2]: new Big2Hand(this.deck.cards.filter(card => p2_hand.includes(card.big2rank))),
+    };
+    this.table = new Big2Hand(this.deck.cards.filter(card => table.includes(card.big2rank)));
+    
+    // move all cards to center of table to prepare for dealing
     this.deck.cards.forEach((card, index) => {
-      card.animate('table', card.x, 0, 0);
+      card.setSide('back');
+      card.animate('table', 400, 0, 0);
     });
 
-    this.hands[this.p1.id].render(this.p1.id === this.you ? 'bottom' : 'top', 1000);
-    this.hands[this.p2.id].render(this.p2.id === this.you ? 'bottom' : 'top', 1000);
+    // deal the cards
+    this.hands[this.p1].render(this.p1 === this.you ? 'bottom' : 'top', 1000);
+    this.hands[this.p2].render(this.p2 === this.you ? 'bottom' : 'top', 1000);
     this.table.render('table', 1000);
 
-    // turn used cards face-up, and get rid of all unused cards
+    // turn dealt cards face-up, and move rest of cards to trash
     this.deck.cards.forEach((card, index) => {
-      if (this.table.has(card) || this.hands[this.p1.id].has(card) || this.hands[this.p2.id].has(card)) {
+      if (this.table.has(card) || this.hands[this.p1].has(card) || this.hands[this.p2].has(card)) {
         card.setSide('front');
       } else {
         card.animate('trash', card.x, index, 1000);
       }
-    })
+    });
 
     this.gameActive = true;
-    
   }
 }

@@ -33,7 +33,7 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Game extends C
 
   async componentDidMount() {
     const { players, player, game, syncGames } = this.props;
-    const client = new Big2Client(document.getElementById('container'), game);
+    let client = new Big2Client(document.getElementById('container'), game, player.id);
 
     this.setState({ interval: setInterval(async() => {
       await functions.post('stayAlive', player.id);
@@ -41,13 +41,23 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Game extends C
       syncGames(await functions.get('allGames'));
     }, 5000) });
 
-    let instruction = null;
-    let lastInstruction_id = null;
+    let instruction = null; // receive the latest instruction from server in this variable
+    let lastInstruction_id = null; // keep track of the last instruction processed
     while (true) {
+      // wait 1 second
       await this.wait(1000);
+      // pull down instruction from server
       instruction = await functions.get('fetchInstruction', game.id);
+      // if instruction hasn't been already processed, process it
       if (instruction && (instruction.id !== lastInstruction_id || !lastInstruction_id)) {
+        console.log(instruction.action);
+        // if a player wins, do this...
+        if (instruction.action === 'p1 wins' || instruction.action === 'p2 wins') {
+          // put something here to determine whether a new game should be booted up
+        }
+        // read the instruction to the client
         client.readInstruction(instruction);
+        // keep track of the last instruction processed, to avoid processing the same instruction twice
         lastInstruction_id = instruction.id;
       }
     }

@@ -24,4 +24,5 @@ def validPlay(req):
   request = json.loads(req.body)
   print(request)
   print(gameplay.validPlay(request))
+  return JsonResponse({ 'res': True }) # always true condition for development
   return JsonResponse({ 'res': gameplay.validPlay(json.loads(req.body)) })
