@@ -123,8 +123,8 @@ STATIC_URL = '/static/'
 # Below this line are custom settings
 def skip_annoying_messages(record):
     annoying_messages = (
-        'POST /api/fetchInstruction/',
-		'POST /api/allGames/',
+        'GET /api/fetchInstruction/',
+		'GET /api/allGames/',
 		'POST /api/stayAlive/',
 	)
     if record.args[0].startswith(annoying_messages):  # filter whatever you want

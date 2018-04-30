@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Redirect } from 'react-router-dom';
 import { connect } from 'react-redux';
 import * as actions from './redux/actions';
-import * as functions from './functions';
+import * as django from './serverWrappers';
 import shortid from 'shortid';
 import { Button, Form, FormGroup, Input, Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 
@@ -48,10 +48,10 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Home extends C
     } else if (button === 'AI vs. AI') {
       return; // in development
     }
-    const game = await functions.post('newGame', newGame);
-    
+    const game = await django.post('newGame', newGame);
+
     setGame(game);
-    syncGames(await functions.get('allGames'));
+    syncGames(await django.get('allGames'));
     this.setState({ redirect: true });
   }
 
@@ -62,10 +62,10 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Home extends C
       game_id,
       player,
     };
-    const game = await functions.post('joinGame', gameInfo);
+    const game = await django.post('joinGame', gameInfo);
 
     setGame(game);
-    syncGames(await functions.get('allGames'));
+    syncGames(await django.get('allGames'));
     this.setState({ redirect: true });
   }
 
@@ -77,9 +77,9 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Home extends C
     };
     
     setPlayer(newPlayer);
-    syncGames(await functions.get('allGames'));
+    syncGames(await django.get('allGames'));
     this.setState({ interval: setInterval(async() => {
-      syncGames(await functions.get('allGames'));
+      syncGames(await django.get('allGames'));
     }, 1000) });
   }
 

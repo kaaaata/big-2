@@ -13,7 +13,7 @@ def joinGame(req):
   return JsonResponse({ 'res': data.joinGame(json.loads(req.body)) })
   
 def fetchInstruction(req):
-  return JsonResponse({ 'res': data.fetchInstruction(json.loads(req.body)) })
+  return JsonResponse({ 'res': data.fetchInstruction(req.GET.get('game_id')) })
 def sendInstruction(req):
   return JsonResponse({ 'res': data.sendInstruction(json.loads(req.body)) })
 
@@ -25,7 +25,7 @@ def validPlay(req):
   request = json.loads(req.body)
   print(request)
   print(gameplay.validPlay(request))
-  return JsonResponse({ 'res': True }) # always true condition for development
+  # return JsonResponse({ 'res': True }) # always true condition for development
   return JsonResponse({ 'res': gameplay.validPlay(json.loads(req.body)) })
 
 # models/ai.py

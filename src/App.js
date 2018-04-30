@@ -4,7 +4,6 @@ import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 // import * as actions from './redux/actions';
 // import store from './redux/store';
-// import * as functions from './functions';
 
 import Home from './Home';
 import Game from './Game';

@@ -1,4 +1,4 @@
-import * as functions from './functions';
+import * as django from './serverWrappers';
 import shortid from 'shortid';
 
 import Big2Hand from './Big2Hand';
@@ -43,7 +43,7 @@ export default class Big2Game {
       cards,
     };
 
-    await functions.post('sendInstruction', instruction);
+    await django.post('sendInstruction', instruction);
   }
 
   async readInstruction(instruction) {
@@ -131,7 +131,7 @@ export default class Big2Game {
           cards: [card.big2rank],
           game_id: this.game_id,
         };
-        await functions.post('sendInstruction', instruction);
+        await django.post('sendInstruction', instruction);
       };
     });
   }
@@ -149,7 +149,7 @@ export default class Big2Game {
             table: this.table.cards.length > 0 ? this.table.big2Ranks() : null,
           };
 
-          if (await functions.post('validPlay', play)) {
+          if (await django.post('validPlay', play)) {
             await this.newInstruction('playActiveCards');
             if (this.game_id.startsWith('HUMAN_VS_AI')) {
               setTimeout(async() => {
@@ -158,7 +158,7 @@ export default class Big2Game {
                   table: this.table.big2Ranks(),
                   opponentCards: this.hands[this.p1].cards.length,
                 };
-                const AIPlay = await functions.post('selectBestHandToPlay', state);
+                const AIPlay = await django.post('selectBestHandToPlay', state);
                 await this.newInstruction('activate', AIPlay, this.p2);
                 await this.wait(500);
                 await this.newInstruction('playActiveCards', null, this.p2);

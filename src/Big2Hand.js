@@ -24,8 +24,8 @@ export default class Big2Hand {
   playActiveCards() {
     const ret = [];
     for (let i = 0; i < this.cards.length; i++) {
-      if (true) { // play all cards, for development
-      // if (this.cards[i].active) {
+      // if (true) { // play all cards, for development
+      if (this.cards[i].active) {
         this.cards[i].active = false;
         ret.push(this.cards.splice(i--, 1)[0]);
       }

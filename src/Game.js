@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import * as actions from './redux/actions';
-import * as functions from './functions';
+import * as django from './serverWrappers';
 
 import Big2Client from './Big2Client';
 import './styles/Game.css';
@@ -40,9 +40,9 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Game extends C
 
     // keep the game alive
     this.setState({ interval: setInterval(async() => {
-      await functions.post('stayAlive', player.id);
-      await functions.post('stayAlive', 'dummy id'); // keep the dummy player alive for development
-      syncGames(await functions.get('allGames'));
+      await django.post('stayAlive', player.id);
+      await django.post('stayAlive', 'dummy id'); // keep the dummy player alive for development
+      syncGames(await django.get('allGames'));
       setGame(this.props.games.filter(item => item.id === this.props.game.id)[0]);
     }, 1000) });
 
@@ -66,7 +66,7 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Game extends C
       // server ping tick frequency
       await this.wait(100);
       // pull down instruction from server
-      instruction = await functions.get('fetchInstruction', game.id);
+      instruction = await django.get('fetchInstruction', { game_id: game.id });
       // if instruction hasn't been already processed, process it
       if (instruction && (instruction.id !== lastInstruction_id || !lastInstruction_id)) {
         console.log(instruction.action);
