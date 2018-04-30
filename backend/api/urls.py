@@ -14,5 +14,8 @@ urlpatterns = [
   path('stayAlive/', routes.stayAlive, name='stayAlive'),
 
   # models/gameplay.py
-  path('validPlay/', routes.validPlay, name='validPlay')
+  path('validPlay/', routes.validPlay, name='validPlay'),
+
+  # models/ai.py
+  path('selectBestHandToPlay/', routes.selectBestHandToPlay, name='selectBestHandToPlay')
 ]

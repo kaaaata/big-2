@@ -9,6 +9,7 @@
   "scripts": {
     "server-dev": "python3 backend/manage.py runserver 0:3001",
     "sass-dev": "sass --watch src:src/styles --sourcemap=none",
+    "test-backend": "python3 backend/manage.py test backend -v 2",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",

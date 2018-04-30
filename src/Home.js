@@ -29,15 +29,27 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Home extends C
     };
   }
 
-  async newGame() {
+  async newGame(button) {
     const { player, syncGames, setGame } = this.props;
     if (player.name === '') return alert('Please enter your name.');
-    const newGame = {
-      id: shortid.generate(),
-      player,
-    };
+    let newGame = {};
+    if (button === 'New Game') {
+      newGame = {
+        id: shortid.generate(),
+        p1: player,
+        p2: null,
+      };
+    } else if (button === 'Play AI') {
+      newGame = {
+        id: 'HUMAN_VS_AI' + shortid.generate(),
+        p1: player,
+        p2: { id: shortid.generate(), name: 'Cat-Bot 2000' },
+      };
+    } else if (button === 'AI vs. AI') {
+      return; // in development
+    }
     const game = await functions.post('newGame', newGame);
-
+    
     setGame(game);
     syncGames(await functions.get('allGames'));
     this.setState({ redirect: true });
@@ -45,6 +57,7 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Home extends C
 
   async joinGame(game_id) {
     const { setGame, player, syncGames } = this.props;
+    if (player.name === '') return alert('Please enter your name.');
     const gameInfo = {
       game_id,
       player,
@@ -111,15 +124,18 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Home extends C
               ))}
             </DropdownMenu>
           </Dropdown>
-          <Button
-            color="danger"
-            onClick={() => this.newGame()}
-          >
-            {redirect &&
-              <Redirect to={`/game/${game.id}`} />
-            }
-            New Game
-          </Button>
+          {['New Game', 'Play AI', 'AI vs. AI'].map(button => (
+            <Button
+              key={button}
+              color="danger"
+              onClick={() => this.newGame(button)}
+            >
+              {redirect &&
+                <Redirect to={`/game/${game.id}`} />
+              }
+              {button}
+            </Button>
+          ))}
         </article>
       </section>
     );

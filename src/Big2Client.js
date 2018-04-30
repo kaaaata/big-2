@@ -26,11 +26,19 @@ export default class Big2Game {
     this.initGame(game.p1_hand, game.p2_hand, game.table);
   };
 
-  async newInstruction(action, cards = null) {
+  wait(ms) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve();
+      }, ms);
+    });
+  }
+
+  async newInstruction(action, cards = null, player = this.you) {
     const instruction = {
       id: shortid.generate(),
       game_id: this.game_id,
-      player: this.you,
+      player,
       action,
       cards,
     };
@@ -143,6 +151,19 @@ export default class Big2Game {
 
           if (await functions.post('validPlay', play)) {
             await this.newInstruction('playActiveCards');
+            if (this.game_id.startsWith('HUMAN_VS_AI')) {
+              setTimeout(async() => {
+                const state = {
+                  cards: this.hands[this.p2].big2Ranks(),
+                  table: this.table.big2Ranks(),
+                  opponentCards: this.hands[this.p1].cards.length,
+                };
+                const AIPlay = await functions.post('selectBestHandToPlay', state);
+                await this.newInstruction('activate', AIPlay, this.p2);
+                await this.wait(500);
+                await this.newInstruction('playActiveCards', null, this.p2);
+              }, 1000);
+            }
           } else {
             await this.newInstruction('deactivateAllCards');
           }

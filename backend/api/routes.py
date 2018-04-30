@@ -1,6 +1,7 @@
 from django.http import JsonResponse
 from api.models import data
 from api.models import gameplay
+from api.models import ai
 import json
 
 # models/data.py
@@ -26,3 +27,7 @@ def validPlay(req):
   print(gameplay.validPlay(request))
   return JsonResponse({ 'res': True }) # always true condition for development
   return JsonResponse({ 'res': gameplay.validPlay(json.loads(req.body)) })
+
+# models/ai.py
+def selectBestHandToPlay(req):
+  return JsonResponse({ 'res': ai.selectBestHandToPlay(json.loads(req.body)) })

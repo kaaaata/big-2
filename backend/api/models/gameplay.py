@@ -1,5 +1,10 @@
 # gameplay.py stores algorithms pertaining to gameplay logic. there is no shared data here.
 
+def generateRandomDeck():
+    deck = [i for i in list(range(30, 154)) if i % 10 <= 3]
+    shuffle(deck)
+    return deck
+
 def validPlay(play):
   cards = parseHand(play['cards'])
   table = parseHand(play['table']) if play['table'] else None
@@ -20,7 +25,7 @@ def parseHand(hand):
   ranks = [i // 10 for i in hand] # rank only i.e. [14, 14, 14, 14]
   suits = [i % 10 for i in hand] # suit only i.e. [0, 1, 2, 3]
 
-  if len(hand) <= 1:
+  if len(hand) == 1:
     return { 'combo': '1x', 'power': hand[0] }
   elif len(hand) == 2 and allEqual(ranks):
     return { 'combo': '2x', 'power': hand[1] }
@@ -68,3 +73,50 @@ def allConsecutive(array):
     if array[i] + 1 != array[i + 1]:
       return False
   return True
+
+def rankCount(card, array):
+  return len([i for i in array if i // 10 == card // 10])
+  
+def allCombinations(a, size):
+  # given an (a)rray of cards, return all combinations with 'size' length (not permutations)
+  # allCombinations([1, 2, 3], 2) => [[1, 2], [1, 3], [2, 3]]
+  # CONSTANT TIME for 2 <= a <= 4 !!
+  if len(a) <= 2:
+    if size == 2:
+      return [a]
+  elif len(a) == 3:
+    if size == 2:
+      return [[a[0], a[1]], [a[0], a[2]], [a[1], a[2]]]
+    elif size == 3:
+      return [a]
+  elif len(a) == 4:
+    if size == 2:
+      return [[a[0], a[1]], [a[0], a[2]], [a[0], a[3]], [a[1], a[2]], [a[1], a[3]], [a[2], a[3]]]
+    elif size == 3:
+      return [[a[0], a[1], a[2]], [a[0], a[1], a[3]], [a[0], a[2], a[3]], [a[1], a[2], a[3]]]
+    elif size == 4:
+      return [a]
+  else:
+    return []
+
+def allStraights(hand):
+  # take hand like [x, x] and return all possible straights like [[x, ... , x], [x, ... , x]] 
+  ret = []
+  ranks = [i // 10 for i in hand]
+
+  for i in range(len(hand)):
+    if (hand[i] + 10 in ranks) and (hand[i] + 20 in ranks) and (hand[i] + 30 in ranks) and (hand[i] + 40 in ranks):      
+      straights = [[hand[i]]]
+      additions = []
+
+      for next_rank in [10, 20, 30, 40]:
+        all_next_rank = [j for j in hand if j // 10 == ranks[i] + next_rank]
+        for next_rank_card in all_next_rank:
+          for straight in straights:
+            additions.append(straight + [next_rank_card])
+        straights = additions
+        additions = []
+      
+      ret += [straight for straight in straights if len(straight) == 5]
+  
+  return ret

@@ -3,6 +3,7 @@
 # from django.db import models
 from threading import Timer
 from random import shuffle
+from . import gameplay
 
 # a class to store all game data in memory
 class Games:
@@ -12,20 +13,16 @@ class Games:
     self.startingLife = 3
 
   # self.games methods
-  def generateRandomDeck(self):
-    deck = [i for i in list(range(30, 154)) if i % 10 <= 3]
-    shuffle(deck)
-    return deck
   def newGame(self, newGame):
     # initialize a new game with one player in the p1 slot, returning the newly created game object
     # generate starting hands from randomized deck of big2ranks
-    deck = self.generateRandomDeck()
+    deck = gameplay.generateRandomDeck()
 
     game = {
       'id': newGame['id'],
       # all players and spectators have id, name, and life (representing whether they are active or not)
       'players': [
-        { 'id': newGame['player']['id'], 'name': newGame['player']['name'], 'life': self.startingLife }, 
+        { 'id': newGame['p1']['id'], 'name': newGame['p1']['name'], 'life': self.startingLife }, 
         # { 'id': 'dummy id', 'name': 'dummy player 2', 'life': self.startingLife }, # dummy player for development
       ],
       'p1_hand': deck[:18],
@@ -33,6 +30,9 @@ class Games:
       'table': [],
       'spectators': []
     }
+
+    if game['id'].startswith('HUMAN_VS_AI'):
+      game['players'].append({ 'id': newGame['p2']['id'], 'name': newGame['p2']['name'], 'life': 999999999999 }) # need to refactor this eventually
 
     self.games = [game] + self.games
     return game
@@ -92,7 +92,7 @@ def fetchInstruction(game_id):
   return games.fetchInstruction(game_id)
 def sendInstruction(newInstruction):
   if (newInstruction['action'] == 'new game'):
-    deck = games.generateRandomDeck()
+    deck = gameplay.generateRandomDeck()
     newInstruction['cards'] = {
       'p1_hand': deck[:18],
       'p2_hand': deck[18:36],
