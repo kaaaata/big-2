@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { Route, Switch } from 'react-router-dom';
 import { connect } from 'react-redux';
 import * as actions from './redux/actions';
 import * as functions from './functions';
@@ -10,9 +9,11 @@ import './styles/Game.css';
 const mapStateToProps = (state) => ({
   player: state.default.player,
   game: state.default.game,
+  games: state.default.games,
 });
 const mapDispatchToProps = (dispatch) => ({
   syncGames: (games) => dispatch(actions.syncGames(games)),
+  setGame: (game) => dispatch(actions.setGame(game)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(class Game extends Component {
@@ -34,14 +35,30 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Game extends C
   }
 
   async componentDidMount() {
-    const { players, player, game, syncGames } = this.props;
-    let client = new Big2Client(document.getElementById('container'), game, player.id);
+    const { player, syncGames, setGame } = this.props;
+    // const { game, games } = this.props creates a strange bug where { game, games } does not reflect updates in redux store.
 
+    // keep the game alive
     this.setState({ interval: setInterval(async() => {
       await functions.post('stayAlive', player.id);
       await functions.post('stayAlive', 'dummy id'); // keep the dummy player alive for development
       syncGames(await functions.get('allGames'));
+      setGame(this.props.games.filter(item => item.id === this.props.game.id)[0]);
     }, 5000) });
+
+    // start a game when a new player joins the P2 slot
+    while (true) {
+      await this.wait(1000);
+      if (this.props.game.players.length === 2) {
+        this.newGame();
+        break;
+      }
+    }
+  }
+
+  async newGame() {
+    const { player, game } = this.props;
+    let client = new Big2Client(document.getElementById('container'), game, player.id);
 
     let instruction = null; // receive the latest instruction from server in this variable
     let lastInstruction_id = null; // keep track of the last instruction processed
@@ -76,7 +93,7 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Game extends C
 
   render() {
     const { p1_wins, p2_wins } = this.state;
-    const { player, players, game } = this.props;
+    const { player, players } = this.props;
     const opponent = players[1]
       ? (players[1].id === player.id ? players[0].name : players[1].name)
       : null;
@@ -84,12 +101,12 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Game extends C
     return (
       <section className="game">
         <article className="title">Big 2</article>
-        <article className="player top">P2: {opponent || 'waiting for player...'} ({p2_wins} wins)</article>
+        <article className="player top">{opponent || 'waiting for player...'} ({p2_wins} wins)</article>
         <article className="client">
           <link rel="stylesheet" href="example.css" />
           <div id="container"></div>
         </article>
-        <article className="player bottom">P1: {player.name} ({p1_wins} wins)</article>
+        <article className="player bottom">{player.name} ({p1_wins} wins)</article>
       </section>
     );
   }

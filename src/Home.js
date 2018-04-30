@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Link, Redirect } from 'react-router-dom';
+import { Redirect } from 'react-router-dom';
 import { connect } from 'react-redux';
 import * as actions from './redux/actions';
 import * as functions from './functions';
@@ -30,21 +30,34 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Home extends C
   }
 
   async newGame() {
-    const { games, player, syncGames, setGame } = this.props;
+    const { player, syncGames, setGame } = this.props;
+    if (player.name === '') return alert('Please enter your name.');
     const newGame = {
       id: shortid.generate(),
       player,
     };
-
-    if (player.name === '') return alert('Please enter your name.');
     const game = await functions.post('newGame', newGame);
+
     setGame(game);
-    syncGames(await functions.post('allGames'));
+    syncGames(await functions.get('allGames'));
+    this.setState({ redirect: true });
+  }
+
+  async joinGame(game_id) {
+    const { setGame, player, syncGames } = this.props;
+    const gameInfo = {
+      game_id,
+      player,
+    };
+    const game = await functions.post('joinGame', gameInfo);
+
+    setGame(game);
+    syncGames(await functions.get('allGames'));
     this.setState({ redirect: true });
   }
 
   async componentDidMount() {
-    const { player, setPlayer, syncGames } = this.props;
+    const { setPlayer, syncGames } = this.props;
     const newPlayer = {
       id: shortid.generate(),
       name: 'Cat',
@@ -63,7 +76,7 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Home extends C
 
   render() {
     const { gameDropdownOpen, redirect } = this.state;
-    const { player, games, game, setPlayer, setGame } = this.props;
+    const { player, games, game, setPlayer } = this.props;
 
     return (
       <section className="home">
@@ -92,12 +105,9 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Home extends C
             </DropdownToggle>
             <DropdownMenu className="games-dropdown" right>
               {games.map(game => (
-                <Link
-                  key={game.id}
-                  className="link"
-                  to={`/game/${game.id}`}>
-                  <DropdownItem onClick={() => setGame(game)}>{game.name}</DropdownItem>  
-                </Link>
+                <DropdownItem key={game.id} onClick={() => this.joinGame(game.id)}>
+                  {game.players[0].name}'s Game
+                </DropdownItem>  
               ))}
             </DropdownMenu>
           </Dropdown>

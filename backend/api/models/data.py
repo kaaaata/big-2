@@ -25,7 +25,7 @@ class Games:
       # all players and spectators have id, name, and life (representing whether they are active or not)
       'players': [
         { 'id': newGame['player']['id'], 'name': newGame['player']['name'], 'life': 7 }, 
-        { 'id': 'dummy id', 'name': 'dummy player 2', 'life': 7 },
+        # { 'id': 'dummy id', 'name': 'dummy player 2', 'life': 7 }, # dummy player for development
       ],
       'p1_hand': deck[:18],
       'p2_hand': deck[18:36],
@@ -35,8 +35,11 @@ class Games:
 
     self.games = [game] + self.games
     return game
-  def joinGame(self, game_id, player):
+  def joinGame(self, gameInfo):
     # join a player into a game as a player, or if there is no room, as a spectator, returning the game object
+    game_id = gameInfo['game_id']
+    player = { 'id': gameInfo['player']['id'], 'name': gameInfo['player']['name'], 'life': 7 }
+
     for i in range(len(self.games)):
       if self.games[i]['id'] == game_id:
         if len(self.games[i]['players']) == 1:
@@ -81,6 +84,8 @@ def allGames():
   return games.games
 def newGame(game):
   return games.newGame(game)
+def joinGame(game):
+  return games.joinGame(game)
 
 def fetchInstruction(game_id):
   return games.fetchInstruction(game_id)

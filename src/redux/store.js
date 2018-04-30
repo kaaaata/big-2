@@ -1,5 +1,4 @@
 import { createStore, combineReducers } from 'redux';
-import * as functions from '../functions';
 
 const initialState = {
   player: {

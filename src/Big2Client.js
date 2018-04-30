@@ -46,7 +46,14 @@ export default class Big2Game {
       this.table = new Big2Hand(this.hands[player].playActiveCards());
       this.table.render('table');
       this.hands[player].render();
-      this.checkWin();
+      // check win, otherwise proceed with gameplay
+      if (!this.hands[this.p1].cards.length) {
+        setTimeout(async() => await this.newInstruction('p1 wins'), 2000);    
+      } else if (!this.hands[this.p2].cards.length) {
+        setTimeout(async() => await this.newInstruction('p2 wins'), 2000);    
+      } else {
+        if (player !== this.you) this.gameActive = true;
+      }
     } else if (action === 'activate') {
       this.hands[player].activate(cards);
     } else if (action === 'deactivateAllCards') {
@@ -54,17 +61,12 @@ export default class Big2Game {
     } else if (action === 'pass') {
       this.hands[player].deactivateAllCards();
       this.table.fadeOut();
-      if (player !== player.you) this.gameActive = true;
+      if (player !== this.you) this.gameActive = true;
     } else if (action === 'p1 wins' || action === 'p2 wins') {
       await this.newInstruction('new game');
     } else if (action === 'new game') {
       this.initGame(cards.p1_hand, cards.p2_hand, cards.table);
     }
-  }
-
-  async checkWin() {
-    if (!this.hands[this.p1].cards.length) await this.newInstruction('p1 wins');
-    if (!this.hands[this.p2].cards.length) await this.newInstruction('p2 wins');
   }
 
   initDeckPropertiesAndMount() {
@@ -133,9 +135,9 @@ export default class Big2Game {
     document.onkeyup = async(e) => {
 			if (this.gameActive) {
         if (e.keyCode === 13) { // enter
-          // this.gameActive = false;
           // if you have no cards active, do nothing
           if (!this.hands[this.you].big2Ranks((card => card.active)).length) return;
+          this.gameActive = false;
           const play = {
             cards: this.hands[this.you].big2Ranks((card) => card.active),
             table: this.table.cards.length > 0 ? this.table.big2Ranks() : null,
@@ -150,6 +152,9 @@ export default class Big2Game {
           // this.gameActive = false;
           await this.newInstruction('pass')
         }
+      } else {
+        // deactivate all cards if you try to play something not on your turn
+        await this.newInstruction('deactivateAllCards');
       }
     };
 
@@ -180,6 +185,7 @@ export default class Big2Game {
       }
     });
 
-    this.gameActive = true;
+    // make it P1's turn
+    if (this.p1 === this.you) this.gameActive = true;
   }
 }
