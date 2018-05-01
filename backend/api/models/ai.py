@@ -7,15 +7,14 @@ import math
 class _ai:
   def __init__(self):
     self.wins = []
-  def runTraining(self, repetitions):
-    # for all possible aggression levels, play #repetitions games against each other level of aggression. 
-    # min aggression: 0 (always play smallest combination)
-    # max aggression: 18 (always play largest combination) 
-    # 1 repetition = 18^2 = 361 games
+
+  def runTraining(self, training_parameters):
+    # given some training parameters, run a training regimen.
 
     # parameters
-    min_aggression = 0
-    max_aggression = 4
+    repetitions = training_parameters['repetitions']
+    min_aggression = training_parameters['min_aggression']
+    max_aggression = training_parameters['max_aggression']
 
     for aggression_i in range(min_aggression, max_aggression + 1):
       for aggression_j in range(min_aggression, max_aggression + 1):
@@ -26,30 +25,47 @@ class _ai:
       winrate = round(100 * wins / (repetitions * ((max_aggression - min_aggression + 1) * 2 - 1)))
       print('Aggression ' + str(i) + ': ' + str(wins) + ' wins, ' + str(winrate) + '% winrate')
     return self.wins
+    
   def train(self, aggression_i, aggression_j):
+    # run one AI training game
     deck = gameplay.generateRandomDeck()
     i_hand = sorted(deck[:18])
     j_hand = sorted(deck[18:36])
     table = []
     while True:
-      possibilities = self.possibilities(i_hand, table)
-      play = [] if possibilities == [] else (possibilities[0] if (18 - len(j_hand)) > aggression_i else possibilities[len(possibilities) - 1])
-      table = play
-      i_hand = [i for i in i_hand if i not in play]
+      table = self.selectBestHandToPlay(i_hand, table, len(j_hand), aggression_i)
+      i_hand = [i for i in i_hand if i not in table]
       if len(i_hand) == 0:
         self.wins.append(aggression_i)
         break;
-      possibilities = self.possibilities(j_hand, table)
-      play = [] if possibilities == [] else (possibilities[0] if (18 - len(i_hand)) > aggression_j else possibilities[len(possibilities) - 1])
-      table = play
-      j_hand = [i for i in j_hand if i not in play]
+      table = self.selectBestHandToPlay(j_hand, table, len(i_hand), aggression_j)
+      j_hand = [i for i in j_hand if i not in table]
       if len(j_hand) == 0:
         self.wins.append(aggression_j)
         break;
     return []
+
+  def selectBestHandToPlay(self, hand, table, opponentCards, aggression):
+    # select theoretical best hand to play given hand, table, opponentCards, aggression
+
+    # 'slam jam it' if AI can win this turn
+    _hand = gameplay.parseHand(hand)
+    _table = gameplay.parseHand(table)
+
+    if _hand != None:
+      if _table == None or _hand['combo'] == _table['combo'] and _hand['power'] > _table['power']:
+        return hand
+
+    # generate all the possibile hands, and pick the optimal one based on given parameters
+    possibilities = self.possibilities(hand, table)
+    return [] if possibilities == [] else (possibilities[0] if (18 - opponentCards) > aggression else possibilities[len(possibilities) - 1])
+
   def possibilities(self, hand, table):
+    # given a hand and a table, return all possible valid combinations to play to the table
+
     ret = []
     table = gameplay.parseHand(table)
+
     if table == None:
       ret += self.all1x2x3x4x(hand, 1)
       ret += self.all1x2x3x4x(hand, 2)
@@ -87,7 +103,9 @@ class _ai:
 
   def all1x2x3x4x(self, hand, x):
     # get all possible singles, pairs, triplets, or fours (x = 1, 2, 3, 4)
+
     ret = []
+
     if x == 1:
       ret = [[i] for i in hand]
     else:
@@ -108,18 +126,26 @@ class _ai:
     # 4. finish
 
     return ret if x == 4 else sorted(ret, key = lambda i: gameplay.parseHand(i)['power'])
+
   def all5x(self, hand, x):
     # get straight flushes, four of a kinds, full houses, flushes, and straights
+
     if len(hand) < 5: # end immediately if no playable hands
       return []
+
+    def rank(card):
+      return card // 10
+
     ret = []
+    ranks = [rank(i) for i in hand]
+
     if x == '4x':
       # 1. get all fours
       fours = self.all1x2x3x4x(hand, 4) # like [[x, x, x, x]]
       # 2. for each four, add a single of every other rank
       for four in fours:
         for i in hand:
-          if i // 10 != four[0] // 10:
+          if rank(i) != rank(four[0]):
             ret.append(four + [i])
     elif x == 'full house':
       # 1. get all pairs and triplets
@@ -128,7 +154,7 @@ class _ai:
       # 2. for each pair, add a triplet of every other rank
       for pair in pairs:
         for trip in triplets:
-          if trip[0] // 10 != pair[0] // 10:
+          if rank(trip[0]) != rank(pair[0]):
             ret.append(pair + trip)
     else:
       # generate flushes and straights without returning. the intersection of these will be straight flushes
@@ -141,7 +167,19 @@ class _ai:
         for flush_max_card in filter_suit[4:]:
           flushes.append(filter_suit[:4] + [flush_max_card])
       # 2. generate all straights
-      straights = gameplay.allStraights(hand)
+      straights = []
+      for i in range(len(hand)):
+        if (rank(hand[i]) + 1 in ranks) and (rank(hand[i]) + 2 in ranks) and (rank(hand[i]) + 3 in ranks) and (rank(hand[i]) + 4 in ranks):
+          new_straights = [[hand[i]]]
+          additions = []
+          for next_rank in [1, 2, 3, 4]:
+            all_next_rank = [j for j in hand if rank(j) == ranks[i] + next_rank]
+            for next_rank_card in all_next_rank:
+              for straight in new_straights:
+                additions.append(straight + [next_rank_card])
+            new_straights = additions
+            additions = []
+          straights += [straight for straight in new_straights if len(straight) == 5]
       # 3. use flushes and straights lists to derive straight, flush, and straight flush
       if x == 'straight':
         ret = straights
@@ -151,4 +189,5 @@ class _ai:
         ret = [straight for straight in straights if gameplay.allEqual([i % 10 for i in straight])]
     # 4. finish
     return sorted(ret, key = lambda i: gameplay.parseHand(i)['power'])
+
 ai = _ai()

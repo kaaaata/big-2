@@ -20,10 +20,7 @@ def validPlay(play):
 
 def parseHand(hand):
   # take hand like [140, 141, 142, 143] i.e. [A♦, A♣, A♥, A♠], and return { combo: '5x', power: 143 }, null if invalid
-
-  # if !hand[0]: # not sure if this edge case will be needed
-  #   return None;
-
+  
   ranks = [i // 10 for i in hand] # rank only i.e. [14, 14, 14, 14]
   suits = [i % 10 for i in hand] # suit only i.e. [0, 1, 2, 3]
 
@@ -83,6 +80,7 @@ def allCombinations(a, size):
   # given an (a)rray of cards, return all combinations with 'size' length (not permutations)
   # allCombinations([1, 2, 3], 2) => [[1, 2], [1, 3], [2, 3]]
   # CONSTANT TIME for 2 <= a <= 4 !!
+
   if len(a) <= 2:
     if size == 2:
       return [a]
@@ -100,28 +98,3 @@ def allCombinations(a, size):
       return [a]
   else:
     return []
-
-def allStraights(hand):
-  # take hand like [x, x] and return all possible straights like [[x, ... , x], [x, ... , x]] 
-  def rank(card):
-    return card // 10
-  ret = []
-  ranks = [rank(i) for i in hand]
-
-  for i in range(len(hand)):
-    if (rank(hand[i]) + 1 in ranks) and (rank(hand[i]) + 2 in ranks) and (rank(hand[i]) + 3 in ranks) and (rank(hand[i]) + 4 in ranks):      
-      straights = [[hand[i]]]
-      additions = []
-
-      for next_rank in [1, 2, 3, 4]:
-        all_next_rank = [j for j in hand if rank(j) == ranks[i] + next_rank]
-        for next_rank_card in all_next_rank:
-          for straight in straights:
-            additions.append(straight + [next_rank_card])
-
-        straights = additions
-        additions = []
-      
-      ret += [straight for straight in straights if len(straight) == 5]
-  
-  return ret
