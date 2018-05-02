@@ -30,4 +30,4 @@ def validPlay(req):
 
 # models/ai.py
 def selectBestHandToPlay(req):
-  return JsonResponse({ 'res': ai.selectBestHandToPlay(json.loads(req.body)) })
+  return JsonResponse({ 'res': ai.selectBestHandToPlay(json.loads(req.GET.get('hand')), json.loads(req.GET.get('table')), int(req.GET.get('opponentCards')), int(req.GET.get('aggression'))) })

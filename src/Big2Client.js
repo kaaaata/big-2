@@ -71,7 +71,28 @@ export default class Big2Game {
       this.table.fadeOut();
       if (player !== this.you) this.gameActive = true;
     } else if (action === 'new game') {
-      this.initGame(cards.p1_hand, cards.p2_hand, cards.table);
+      setTimeout(() => {
+        this.initDeckPropertiesAndMount();
+        this.initGame(cards.p1_hand, cards.p2_hand, cards.table);
+      }, 2000);
+    }
+  }
+
+  aiTurn() {
+    if (this.game_id.startsWith('HUMAN_VS_AI')) {
+      setTimeout(async() => {
+        const state = {
+          hand: JSON.stringify(this.hands[this.p2].big2Ranks()),
+          table: JSON.stringify(this.table.big2Ranks()),
+          opponentCards: this.hands[this.p1].cards.length,
+          aggression: 2,
+        };
+        const bestHandToPlay = await django.get('selectBestHandToPlay', state);
+        await this.newInstruction('activate', bestHandToPlay, this.p2);
+        await this.wait(500);
+        await this.newInstruction('playActiveCards', null, this.p2);
+        this.gameActive = true;
+      }, 1000);
     }
   }
 
@@ -151,25 +172,14 @@ export default class Big2Game {
 
           if (await django.post('validPlay', play)) {
             await this.newInstruction('playActiveCards');
-            if (this.game_id.startsWith('HUMAN_VS_AI')) {
-              setTimeout(async() => {
-                const state = {
-                  cards: this.hands[this.p2].big2Ranks(),
-                  table: this.table.big2Ranks(),
-                  opponentCards: this.hands[this.p1].cards.length,
-                };
-                const AIPlay = await django.post('selectBestHandToPlay', state);
-                await this.newInstruction('activate', AIPlay, this.p2);
-                await this.wait(500);
-                await this.newInstruction('playActiveCards', null, this.p2);
-              }, 1000);
-            }
+            this.aiTurn();
           } else {
             await this.newInstruction('deactivateAllCards');
           }
         } else if (e.keyCode === 80) {
-          // this.gameActive = false;
+          this.gameActive = false;
           await this.newInstruction('pass')
+          this.aiTurn();
         }
       } else {
         // deactivate all cards if you try to play something not on your turn

@@ -6,7 +6,8 @@ import math
 # a class to store all AI related functions
 class _ai:
   def __init__(self):
-    self.wins = []
+    self.wins = {}
+    self.games = {}
 
   def runTraining(self, training_parameters):
     # given some training parameters, run a training regimen.
@@ -15,50 +16,61 @@ class _ai:
     repetitions = training_parameters['repetitions']
     min_aggression = training_parameters['min_aggression']
     max_aggression = training_parameters['max_aggression']
+    for i in range(min_aggression, max_aggression + 1):
+      self.wins[i] = 0
+      self.games[i] = 0    
 
     for aggression_i in range(min_aggression, max_aggression + 1):
+      # for aggression_j in [18] * (max_aggression - min_aggression + 1): # enable this line to play against a specific AI
       for aggression_j in range(min_aggression, max_aggression + 1):
         for i in range(repetitions):
           self.train(aggression_i, aggression_j)
-    for i in range(min_aggression, max_aggression + 1):
-      wins = self.wins.count(i)
-      winrate = round(100 * wins / (repetitions * ((max_aggression - min_aggression + 1) * 2 - 1)))
-      print('Aggression ' + str(i) + ': ' + str(wins) + ' wins, ' + str(winrate) + '% winrate')
+    for i in self.wins:
+      wins = self.wins[i]
+      games = self.games[i]
+      winrate = round(100 * wins / games)
+      print('Aggression ' + str(i) + ': ' + str(winrate) + '% winrate (' + str(wins) + '/' + str(games) + ')')
     return self.wins
     
   def train(self, aggression_i, aggression_j):
     # run one AI training game
+
+    # initialize game
     deck = gameplay.generateRandomDeck()
     i_hand = sorted(deck[:18])
     j_hand = sorted(deck[18:36])
     table = []
+
+    # help track winrate statistics
+    self.games[aggression_i] += 1
+    self.games[aggression_j] += 1
+
     while True:
       table = self.selectBestHandToPlay(i_hand, table, len(j_hand), aggression_i)
       i_hand = [i for i in i_hand if i not in table]
       if len(i_hand) == 0:
-        self.wins.append(aggression_i)
+        self.wins[aggression_i] += 1
         break;
       table = self.selectBestHandToPlay(j_hand, table, len(i_hand), aggression_j)
       j_hand = [i for i in j_hand if i not in table]
       if len(j_hand) == 0:
-        self.wins.append(aggression_j)
+        self.wins[aggression_j] += 1
         break;
-    return []
+
+    return [] # useless return that serves to indicate when train() finished executing
 
   def selectBestHandToPlay(self, hand, table, opponentCards, aggression):
     # select theoretical best hand to play given hand, table, opponentCards, aggression
+    # 1. get all possible plays in order from smallest to largest (possible play = can play and beat table)
+    # 2. assign each play a value based on its power and its disruption (high disruption = breaks many good hands = bad)
 
     # 'slam jam it' if AI can win this turn
-    _hand = gameplay.parseHand(hand)
-    _table = gameplay.parseHand(table)
-
-    if _hand != None:
-      if _table == None or _hand['combo'] == _table['combo'] and _hand['power'] > _table['power']:
-        return hand
+    if table == [] and gameplay.parseHand(hand):
+      return hand
 
     # generate all the possibile hands, and pick the optimal one based on given parameters
     possibilities = self.possibilities(hand, table)
-    return [] if possibilities == [] else (possibilities[0] if (18 - opponentCards) > aggression else possibilities[len(possibilities) - 1])
+    return [] if possibilities == [] else (possibilities[0] if aggression <= opponentCards else possibilities[len(possibilities) - 1])
 
   def possibilities(self, hand, table):
     # given a hand and a table, return all possible valid combinations to play to the table
@@ -66,18 +78,20 @@ class _ai:
     ret = []
     table = gameplay.parseHand(table)
 
+    # 1. add all possibilities (algorithm generates no duplicates)
     if table == None:
-      ret += self.all1x2x3x4x(hand, 1)
-      ret += self.all1x2x3x4x(hand, 2)
-      ret += self.all1x2x3x4x(hand, 3)
+      # what hands the AI will play first on an empty table is predetermined in the following order
       ret += self.all5x(hand, 'straight')
-      ret += self.all5x(hand, 'flush')
+      ret += self.all1x2x3x4x(hand, 2)
+      ret += self.all1x2x3x4x(hand, 1)
+      ret += self.all1x2x3x4x(hand, 3)
       ret += self.all5x(hand, 'full house')
+      ret += self.all5x(hand, 'flush')
       ret += self.all5x(hand, '4x')
       ret += self.all5x(hand, 'straight flush')
       return ret
     elif table['combo'] in ['1x', '2x', '3x']:
-      ret += self.all1x2x3x4x(hand, int(table['combo'][0]))
+      return [i for i in self.all1x2x3x4x(hand, int(table['combo'][0])) if gameplay.parseHand(i)['power'] > table['power']]
     elif table['combo'] == '5x':
       if table['power'] < 2000:
         ret += self.all5x(hand, 'straight')
@@ -89,17 +103,7 @@ class _ai:
         ret += self.all5x(hand, '4x')
       if table['power'] < 6000:
         ret += self.all5x(hand, 'straight flush') # ai will always add straight flush.
-
-    # remove duplicates (due to straight/flush/straight flush duplication) (list(set(ret)) throws error for some reason)
-    new_ret = []
-    for i in ret:
-      if i not in new_ret:
-        new_ret.append(i)
-    ret = new_ret
-
-    # filter out hands that do not beat the table, then sort
-    ret = [i for i in ret if gameplay.parseHand(i)['power'] > (table['power'] if table else 0)]
-    return sorted(ret, key = lambda i: gameplay.parseHand(i)['power'])
+      return [i for i in ret if gameplay.parseHand(i)['power'] > table['power']]
 
   def all1x2x3x4x(self, hand, x):
     # get all possible singles, pairs, triplets, or fours (x = 1, 2, 3, 4)
@@ -180,14 +184,19 @@ class _ai:
             new_straights = additions
             additions = []
           straights += [straight for straight in new_straights if len(straight) == 5]
-      # 3. use flushes and straights lists to derive straight, flush, and straight flush
+      # 3. generate all straight flushes
+      straight_flushes = [i for i in straights if i in flushes]
+      # 4. prepare to return
       if x == 'straight':
-        ret = straights
+        ret = [straight for straight in straights if straight not in straight_flushes]
       elif x == 'flush':
-        ret = flushes
+        ret = [flush for flush in flushes if flush not in straight_flushes]
       elif x == 'straight flush':
-        ret = [straight for straight in straights if gameplay.allEqual([i % 10 for i in straight])]
+        ret = straight_flushes
     # 4. finish
     return sorted(ret, key = lambda i: gameplay.parseHand(i)['power'])
 
 ai = _ai()
+
+def selectBestHandToPlay(hand, table, opponentCards, aggression):
+  return ai.selectBestHandToPlay(hand, table, opponentCards, aggression)
