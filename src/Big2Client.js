@@ -175,6 +175,7 @@ export default class Big2Game {
             this.aiTurn();
           } else {
             await this.newInstruction('deactivateAllCards');
+            this.gameActive = true;
           }
         } else if (e.keyCode === 80) {
           this.gameActive = false;
