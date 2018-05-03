@@ -65,10 +65,13 @@ class Games:
     for i in range(len(self.games)):
       for j in range(len(self.games[i]['players'])):
         self.games[i]['players'][j]['life'] -= 1
-        if self.games[i]['players'][j]['life'] == 0:
+        game = self.games[i]
+        # if players have disconnected for too long, or if there are no spectators in AI_VS_AI, delete game.
+        if game['players'][j]['life'] == 0 or game['id'].startswith('AI_VS_AI') and game['spectators'] == []:
           game_ids_to_delete.append(self.games[i]['id']) # probably should not delete the game right away but let's work on this later
       for j in range(len(self.games[i]['spectators'])):
         self.games[i]['spectators'][j]['life'] -= 1
+        # if a spectator has disconnected for too long, remove them from the game
         if self.games[i]['spectators'][j]['life'] == 0:
           del self.games[i]['spectators'][j]
     self.games = [i for i in self.games if i['id'] not in game_ids_to_delete]
