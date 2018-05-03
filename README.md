@@ -1,7 +1,7 @@
 # big-2
-Big 2 card game in HTML/CSS/JS 
+NOTE: THIS IS OLD WORK, GO TO MASTER BRANCH FOR MOST RECENT WORK
 
-Note: game is working, but still many changes need to be made
+Big 2 card game in HTML/CSS/JS 
 
 Setup: 
 npm install
@@ -20,8 +20,3 @@ http://onlyagame.typepad.com/only_a_game/2008/04/big-two-rules.html
 
 Card graphics library:
 https://github.com/pakastin/deck-of-cards
-
-To-do: 
--Improve AI
--Add timer
--Add optional auto-win animation sequence if your smallest card is greater than the opponent's greatest card
