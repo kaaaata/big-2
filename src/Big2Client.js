@@ -56,11 +56,13 @@ export default class Big2Game {
       this.hands[player].render();
       // check win, otherwise proceed with gameplay
       if (!this.hands[this.p1].cards.length) {
-        setTimeout(async() => await this.newInstruction('p1 wins'), 1000);
+        await this.wait(1000);
+        await this.newInstruction('p1 wins');
       } else if (!this.hands[this.p2].cards.length) {
-        setTimeout(async() => await this.newInstruction('p2 wins'), 1000);
+        await this.wait(1000);
+        await this.newInstruction('p2 wins');
       } else {
-        if (player !== this.you) this.gameActive = true;
+        if (!this.game_id.startsWith('AI_VS_AI') && player !== this.you) this.gameActive = true;
       }
     } else if (action === 'activate') {
       this.hands[player].activate(cards);
@@ -78,21 +80,30 @@ export default class Big2Game {
     }
   }
 
-  aiTurn() {
-    if (this.game_id.startsWith('HUMAN_VS_AI')) {
-      setTimeout(async() => {
-        const state = {
-          hand: JSON.stringify(this.hands[this.p2].big2Ranks()),
-          table: JSON.stringify(this.table.big2Ranks()),
-          opponentCards: this.hands[this.p1].cards.length,
-          aggression: 2,
-        };
-        const bestHandToPlay = await django.get('selectBestHandToPlay', state);
-        await this.newInstruction('activate', bestHandToPlay, this.p2);
-        await this.wait(500);
-        await this.newInstruction('playActiveCards', null, this.p2);
-        this.gameActive = true;
-      }, 1000);
+  async aiTurn(player) {
+    if (this.game_id.startsWith('HUMAN_VS_AI') || this.game_id.startsWith('AI_VS_AI')) {
+      await this.wait(1000);
+      const state = {
+        hand: JSON.stringify(this.hands[player].big2Ranks()),
+        table: JSON.stringify(this.table.big2Ranks()),
+        opponentCards: this.hands[player.id === this.p2.id ? this.p1 : this.p2].cards.length,
+        aggression: 2,
+      };
+      const bestHandToPlay = await django.get('selectBestHandToPlay', state);
+      await this.newInstruction('activate', bestHandToPlay, player);
+      await this.wait(500);
+      await this.newInstruction('playActiveCards', null, player);
+      this.gameActive = true;
+      return null;
+    }
+  }
+
+  async startAI() {
+    // make AI play against each other, or make it P1's turn
+    while (this.hands[this.p1].cards.length > 0 && this.hands[this.p2].cards.length > 0) {
+      await this.aiTurn(this.p1);
+      if (this.hands[this.p1].cards.length === 0) break;
+      await this.aiTurn(this.p2);
     }
   }
 
@@ -172,7 +183,7 @@ export default class Big2Game {
 
           if (await django.post('validPlay', play)) {
             await this.newInstruction('playActiveCards');
-            this.aiTurn();
+            this.aiTurn(this.p2);
           } else {
             await this.newInstruction('deactivateAllCards');
             this.gameActive = true;
@@ -180,7 +191,7 @@ export default class Big2Game {
         } else if (e.keyCode === 80) {
           this.gameActive = false;
           await this.newInstruction('pass')
-          this.aiTurn();
+          this.aiTurn(this.p2);
         }
       } else {
         // deactivate all cards if you try to play something not on your turn
@@ -202,7 +213,7 @@ export default class Big2Game {
     });
 
     // deal the cards
-    this.hands[this.p1].render(this.p1 === this.you ? 'bottom' : 'top', 1000);
+    this.hands[this.p1].render(this.p1 === this.you || this.game_id.startsWith('AI_VS_AI') ? 'bottom' : 'top', 1000);
     this.hands[this.p2].render(this.p2 === this.you ? 'bottom' : 'top', 1000);
     this.table.render('table', 1000);
 
@@ -215,7 +226,10 @@ export default class Big2Game {
       }
     });
 
-    // make it P1's turn
-    if (this.p1 === this.you) this.gameActive = true;
+    // conditionally start AI_VS_AI gameplay
+    if (this.game_id.startsWith('AI_VS_AI')) this.startAI();
+
+    // make it p1's turn
+    if (!this.game_id.startsWith('AI_VS_AI') && this.p1 === this.you) this.gameActive = true;
   }
 }

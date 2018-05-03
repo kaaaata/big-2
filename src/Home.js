@@ -46,7 +46,12 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Home extends C
         p2: { id: shortid.generate(), name: 'Cat-Bot 2000' },
       };
     } else if (button === 'AI vs. AI') {
-      return; // in development
+      newGame = {
+        id: 'AI_VS_AI' + shortid.generate(),
+        p1: { id: shortid.generate(), name: 'Cat-Bot 2000' },
+        p2: { id: shortid.generate(), name: 'Cat-Bot 2000' },
+        spectator: player,
+      };
     }
     const game = await django.post('newGame', newGame);
 

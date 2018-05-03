@@ -20,18 +20,30 @@ class Games:
     game = {
       'id': newGame['id'],
       # all players and spectators have id, name, and life (representing whether they are active or not)
-      'players': [
-        { 'id': newGame['p1']['id'], 'name': newGame['p1']['name'], 'life': self.startingLife }, 
-        # { 'id': 'dummy id', 'name': 'dummy player 2', 'life': self.startingLife }, # dummy player for development
-      ],
+      'players': [],
       'p1_hand': deck[:18],
       'p2_hand': deck[18:36],
       'table': [],
       'spectators': []
     }
 
-    if game['id'].startswith('HUMAN_VS_AI'):
-      game['players'].append({ 'id': newGame['p2']['id'], 'name': newGame['p2']['name'], 'life': 999999999999 }) # need to refactor this eventually
+    if game['id'].startswith('HUMAN_VS_AI'): # need to refactor AI life eventually
+      game['players'] = [
+        { 'id': newGame['p1']['id'], 'name': newGame['p1']['name'], 'life': self.startingLife },
+        { 'id': newGame['p2']['id'], 'name': newGame['p2']['name'], 'life': 999999999999 },
+      ]
+    elif game['id'].startswith('AI_VS_AI'):
+      game['players'] = [
+        { 'id': newGame['p1']['id'], 'name': newGame['p1']['name'], 'life': 999999999999 },
+        { 'id': newGame['p2']['id'], 'name': newGame['p2']['name'], 'life': 999999999999 },
+      ]
+      game['spectators'].append(
+        { 'id': newGame['spectator']['id'], 'name': newGame['spectator']['name'], 'life': self.startingLife },
+      )
+    else:
+      game['players'] = [
+        { 'id': newGame['p1']['id'], 'name': newGame['p1']['name'], 'life': self.startingLife }
+      ]
 
     self.games = [game] + self.games
     return game
