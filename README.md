@@ -1,4 +1,5 @@
-#Big 2  
+Big 2  
+  
 Features:  
 Live 1v1, 1vAI, and AIvAI gameplay  
 Spectator mode  
