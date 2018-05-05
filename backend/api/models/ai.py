@@ -149,6 +149,8 @@ class _ai:
 
     def rank(card):
       return card // 10
+    def suit(card):
+      return card % 10
 
     ret = []
     ranks = [rank(i) for i in hand]
@@ -174,8 +176,8 @@ class _ai:
       # generate flushes and straights without returning. the intersection of these will be straight flushes
       # 1. generate all flushes with unique max rank with lowest 4 as fodder
       flushes = []
-      for suit in range(4):
-        filter_suit = [i for i in hand if i % 10 == suit]
+      for _suit in range(4):
+        filter_suit = [i for i in hand if suit(i) == _suit]
         if len(filter_suit) < 5:
           continue
         for flush_max_card in filter_suit[4:]:
@@ -195,7 +197,8 @@ class _ai:
             additions = []
           straights += [straight for straight in new_straights if len(straight) == 5]
       # 3. generate all straight flushes
-      straight_flushes = [i for i in straights if i in flushes]
+      # note: can't do [straight for straight in straights if straight in flushes] because flushes doesn't contain every single flush
+      straight_flushes = [straight for straight in straights if gameplay.allEqual([suit(i) for i in straight])]
       # 4. prepare to return
       if x == 'straight':
         ret = [straight for straight in straights if straight not in straight_flushes]
