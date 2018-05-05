@@ -1,8 +1,8 @@
 ### inputs ###
 training_parameters = {
-  'repetitions': 10,
+  'repetitions': 25,
   'min_aggression': 0,
-  'max_aggression': 18,
+  'max_aggression': 4,
 }
 ######
 

@@ -1,18 +1,17 @@
 # ai.py stores the algorithm to calculate the best hand for the AI to play, given certain inputs.
 
 from . import gameplay
-import math
 
-# a class to store all AI related functions
+# a class to store all AI related functionality
 class _ai:
   def __init__(self):
-    self.wins = {}
-    self.games = {}
+    self.wins = {} # record AI # wins during training
+    self.games = {} # record AI # games during training
 
   def runTraining(self, training_parameters):
     # given some training parameters, run a training regimen.
 
-    # parameters
+    # map parameters and initialize wins/games tracking
     repetitions = training_parameters['repetitions']
     min_aggression = training_parameters['min_aggression']
     max_aggression = training_parameters['max_aggression']
@@ -20,20 +19,24 @@ class _ai:
       self.wins[i] = 0
       self.games[i] = 0    
 
+    # play the games
     for aggression_i in range(min_aggression, max_aggression + 1):
       # for aggression_j in [18] * (max_aggression - min_aggression + 1): # enable this line to play against a specific AI
       for aggression_j in range(min_aggression, max_aggression + 1):
         for i in range(repetitions):
           self.train(aggression_i, aggression_j)
+
+    # print training results
     for i in self.wins:
       wins = self.wins[i]
       games = self.games[i]
       winrate = round(100 * wins / games)
       print('Aggression ' + str(i) + ': ' + str(winrate) + '% winrate (' + str(wins) + '/' + str(games) + ')')
-    return self.wins
+
+    return True
     
   def train(self, aggression_i, aggression_j):
-    # run one AI training game
+    # run one AI training game (only to be called from self.runTraining)
 
     # initialize game
     deck = gameplay.generateRandomDeck()
@@ -41,36 +44,43 @@ class _ai:
     j_hand = sorted(deck[18:36])
     table = []
 
-    # help track winrate statistics
+    # track winrate statistics
     self.games[aggression_i] += 1
     self.games[aggression_j] += 1
 
+    # run the 'game'
     while True:
       table = self.selectBestHandToPlay(i_hand, table, len(j_hand), aggression_i)
       i_hand = [i for i in i_hand if i not in table]
-      if len(i_hand) == 0:
+      if not i_hand:
         self.wins[aggression_i] += 1
-        break;
+        break
       table = self.selectBestHandToPlay(j_hand, table, len(i_hand), aggression_j)
       j_hand = [i for i in j_hand if i not in table]
-      if len(j_hand) == 0:
+      if not j_hand:
         self.wins[aggression_j] += 1
-        break;
+        break
 
-    return [] # useless return that serves to indicate when train() finished executing
+    return True
+
+  def disruption(self, play, hand):
+    # in progress
+
+    # return a numerical value indicating disruption (high disruption = breaks many good hands = bad)
+    return 3
 
   def selectBestHandToPlay(self, hand, table, opponentCards, aggression):
     # select theoretical best hand to play given hand, table, opponentCards, aggression
     # 1. get all possible plays in order from smallest to largest (possible play = can play and beat table)
-    # 2. assign each play a value based on its power and its disruption (high disruption = breaks many good hands = bad)
+    # 2. assign each play a value based on its power and its disruption
 
     # 'slam jam it' if AI can win this turn
-    if table == [] and gameplay.parseHand(hand):
+    if not table and gameplay.parseHand(hand):
       return hand
 
     # generate all the possibile hands, and pick the optimal one based on given parameters
     possibilities = self.possibilities(hand, table)
-    return [] if possibilities == [] else (possibilities[0] if aggression <= opponentCards else possibilities[len(possibilities) - 1])
+    return [] if not possibilities else (possibilities[0] if aggression <= opponentCards else possibilities[len(possibilities) - 1])
 
   def possibilities(self, hand, table):
     # given a hand and a table, return all possible valid combinations to play to the table
@@ -79,7 +89,7 @@ class _ai:
     table = gameplay.parseHand(table)
 
     # 1. add all possibilities (algorithm generates no duplicates)
-    if table == None:
+    if not table:
       # what hands the AI will play first on an empty table is predetermined in the following order
       ret += self.all5x(hand, 'straight')
       ret += self.all1x2x3x4x(hand, 2)
