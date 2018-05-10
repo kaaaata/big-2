@@ -19,9 +19,12 @@ class Node:
       return
 
     # generate all possibilities given hand and table
-    # possibilities = gameplay.possibilities(self.p1 if self.turn == 'p1' else self.p2, table)
-    # for testing (assumes you can play anything on anything)
-    possibilities = [[i] for i in (self.p1 if self.turn == 'p1' else self.p2) if i > (self.table[0] if self.table else 0)]
+    possibilities = gameplay.possibilities(self.p1 if self.turn == 'p1' else self.p2, self.table)
+    # if no possibilities (player passes), set children equal to all possibilities of the other player on a blank table
+    if not possibilities:
+      self.table = []
+      possibilities = gameplay.possibilities(self.p2 if self.turn == 'p1' else self.p1, self.table)
+      self.turn = 'p2' if self.turn == 'p1' else 'p1'
 
     # iterate through all possibilities, and add then as children nodes
     for possibility in possibilities:
