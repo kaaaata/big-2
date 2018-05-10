@@ -63,11 +63,68 @@ class _ai:
 
     return True
 
-  def disruption(self, play, hand):
-    # in progress
+  def weight(self, play, hand):
+    # low weight = do not play. high weight = omg plz play!
+    weight = 1000000 # highest weight = 1000000 = default
+  
+    # if the play is literally the entire hand, it has the highest weight
+    if len(play) == len(hand):
+      return 1000000
 
-    # return a numerical value indicating disruption (high disruption = breaks many good hands = bad)
-    return 3
+    combo = gameplay.parseHand(play)['combo']
+    # components of weight: 
+    # 1. power of the hand: high power = strong hand = valuable = low weight (want to save best cards for later)
+    # 2. disruption: high disruption = low weight (don't want to break up other hands)
+    # note: a hand cannot disrupt other hands with the same combo i.e. 3x can't disrupt 3x. 
+    disruption_value = 0
+
+    # decrease the weight by the power of the hand, so AI will play weaker hands first
+    weight -= gameplay.parseHand(play)['power']
+
+    # decrease the weight by disruption value. high disruption = higher decrease in weight
+    # assign disruption weights based on hand type (this is the ordering of hands AI will play)
+
+    if combo == 'straight':
+      disruption_value += 0
+    if combo == '2x':
+      disruption_value += 10000
+    if combo == '1x':
+      disruption_value += 20000
+    if combo == '3x':
+      disruption_value += 30000
+    if combo == 'full house':
+      disruption_value += 40000
+    if combo == 'flush':
+      disruption_value += 50000
+    if combo == '4x':
+      disruption_value += 60000
+    if combo == 'straight flush':
+      disruption_value += 70000
+
+    # assign disruption weights based on actual hands disrupted
+    if combo != 'straight flush':
+      for i in self.all5x(hand, 'straight flush'):
+        disruption_value += len(set(i).intersection(play)) * 250
+    if combo != '4x':
+      for i in self.all5x(hand, '4x'):
+        disruption_value += len(set(i).intersection(play)) * 100
+    if combo != 'full house':
+      for i in self.all5x(hand, 'full house'):
+        disruption_value += len(set(i).intersection(play)) * 50
+    if combo != '3x':
+      for i in self.all1x2x3x4x(hand, 3):
+        disruption_value += len(set(i).intersection(play)) * 25
+    if combo != '2x':
+      for i in self.all1x2x3x4x(hand, 2):
+        disruption_value += len(set(i).intersection(play)) * 10
+    if combo != 'straight':
+      for i in self.all5x(hand, 'straight'):
+        disruption_value += len(set(i).intersection(play)) * 5
+    if combo != 'flush':
+      for i in self.all5x(hand, 'flush'):
+        disruption_value += len(set(i).intersection(play)) * 1
+
+    return weight - disruption_value
 
   def selectBestHandToPlay(self, hand, table, opponentCards, aggression):
     # select theoretical best hand to play given hand, table, opponentCards, aggression
@@ -78,9 +135,14 @@ class _ai:
     if not table and gameplay.parseHand(hand):
       return hand
 
-    # generate all the possibile hands, and pick the optimal one based on given parameters
-    possibilities = self.possibilities(hand, table)
-    return [] if not possibilities else (possibilities[0] if aggression <= opponentCards else possibilities[len(possibilities) - 1])
+    # generate all the possibile hands, put a disruption value on each hand, and pick the optimal one based on given parameters
+    # hands are ordered from lowest strength to highest strength
+
+    possibilities = [{ 'cards': i, 'weight': self.weight(i, hand) } for i in self.possibilities(hand, table)]
+    # print hand and all possibilities of that hand
+    # print('hand: ', hand)
+    # print(possibilities)
+    return [] if not possibilities else (max(possibilities, key = lambda x: x['weight'])['cards'] if aggression <= opponentCards and aggression <= len(hand) else possibilities[len(possibilities) - 1]['cards'])
 
   def possibilities(self, hand, table):
     # given a hand and a table, return all possible valid combinations to play to the table
@@ -90,7 +152,8 @@ class _ai:
 
     # 1. add all possibilities (algorithm generates no duplicates)
     if not table:
-      # what hands the AI will play first on an empty table is predetermined in the following order
+      # what hands the AI will play first is determined in the self.weight() method.
+      # the order is as below, although the below has no bearing on the actual order.
       ret += self.all5x(hand, 'straight')
       ret += self.all1x2x3x4x(hand, 2)
       ret += self.all1x2x3x4x(hand, 1)
