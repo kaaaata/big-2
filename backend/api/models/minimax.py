@@ -1,6 +1,7 @@
 from . import gameplay
 
-# tree max depth 36 (18 cards per player, not including option to pass)
+# todo:
+# include depth in minimax tree scores
 
 class Node:
   def __init__(self, p1, p2, table, turn, depth = 0):
