@@ -1,9 +1,10 @@
 # ai.py stores the algorithm to calculate the best hand for the AI to play, given certain inputs.
 
 from . import gameplay
+from . import minimax
 
 # a class to store all AI related functionality
-class _ai:
+class Ai:
   def __init__(self):
     self.wins = {} # record AI # wins during training
     self.games = {} # record AI # games during training
@@ -103,25 +104,25 @@ class _ai:
 
     # assign disruption weights based on actual hands disrupted
     if combo != 'straight flush':
-      for i in self.all5x(hand, 'straight flush'):
+      for i in gameplay.all5x(hand, 'straight flush'):
         disruption_value += len(set(i).intersection(play)) * 250
     if combo != '4x':
-      for i in self.all5x(hand, '4x'):
+      for i in gameplay.all5x(hand, '4x'):
         disruption_value += len(set(i).intersection(play)) * 100
     if combo != 'full house':
-      for i in self.all5x(hand, 'full house'):
+      for i in gameplay.all5x(hand, 'full house'):
         disruption_value += len(set(i).intersection(play)) * 50
     if combo != '3x':
-      for i in self.all1x2x3x4x(hand, 3):
+      for i in gameplay.all1x2x3x4x(hand, 3):
         disruption_value += len(set(i).intersection(play)) * 25
     if combo != '2x':
-      for i in self.all1x2x3x4x(hand, 2):
+      for i in gameplay.all1x2x3x4x(hand, 2):
         disruption_value += len(set(i).intersection(play)) * 10
     if combo != 'straight':
-      for i in self.all5x(hand, 'straight'):
+      for i in gameplay.all5x(hand, 'straight'):
         disruption_value += len(set(i).intersection(play)) * 5
     if combo != 'flush':
-      for i in self.all5x(hand, 'flush'):
+      for i in gameplay.all5x(hand, 'flush'):
         disruption_value += len(set(i).intersection(play)) * 1
 
     return weight - disruption_value
@@ -138,141 +139,13 @@ class _ai:
     # generate all the possibile hands, put a disruption value on each hand, and pick the optimal one based on given parameters
     # hands are ordered from lowest strength to highest strength
 
-    possibilities = [{ 'cards': i, 'weight': self.weight(i, hand) } for i in self.possibilities(hand, table)]
+    possibilities = [{ 'cards': i, 'weight': self.weight(i, hand) } for i in gameplay.possibilities(hand, table)]
     # print hand and all possibilities of that hand
     # print('hand: ', hand)
     # print(possibilities)
     return [] if not possibilities else (max(possibilities, key = lambda x: x['weight'])['cards'] if aggression <= opponentCards and aggression <= len(hand) else possibilities[len(possibilities) - 1]['cards'])
 
-  def possibilities(self, hand, table):
-    # given a hand and a table, return all possible valid combinations to play to the table
-
-    ret = []
-    table = gameplay.parseHand(table)
-
-    # 1. add all possibilities (algorithm generates no duplicates)
-    if not table:
-      # what hands the AI will play first is determined in the self.weight() method.
-      # the order is as below, although the below has no bearing on the actual order.
-      ret += self.all5x(hand, 'straight')
-      ret += self.all1x2x3x4x(hand, 2)
-      ret += self.all1x2x3x4x(hand, 1)
-      ret += self.all1x2x3x4x(hand, 3)
-      ret += self.all5x(hand, 'full house')
-      ret += self.all5x(hand, 'flush')
-      ret += self.all5x(hand, '4x')
-      ret += self.all5x(hand, 'straight flush')
-      return ret
-    elif table['combo'] in ['1x', '2x', '3x']:
-      return [i for i in self.all1x2x3x4x(hand, int(table['combo'][0])) if gameplay.parseHand(i)['power'] > table['power']]
-    elif table['combo'] == '5x':
-      if table['power'] < 2000:
-        ret += self.all5x(hand, 'straight')
-      if table['power'] < 3000:
-        ret += self.all5x(hand, 'flush')
-      if table['power'] < 4000:
-        ret += self.all5x(hand, 'full house')
-      if table['power'] < 5000:
-        ret += self.all5x(hand, '4x')
-      if table['power'] < 6000:
-        ret += self.all5x(hand, 'straight flush') # ai will always add straight flush.
-      return [i for i in ret if gameplay.parseHand(i)['power'] > table['power']]
-
-  def all1x2x3x4x(self, hand, x):
-    # get all possible singles, pairs, triplets, or fours (x = 1, 2, 3, 4)
-
-    ret = []
-
-    if x == 1:
-      ret = [[i] for i in hand]
-    else:
-      # 1. filter out singles, pairs, if necessary.
-      filter_unplayables = [i for i in hand if gameplay.rankCount(i, hand) >= x]
-      if filter_unplayables == []: # end immediately if no playable hands
-        return []
-      # 2. partition by rank [[x, x], [x, x]]
-      partition_ranks = [[filter_unplayables[0]]]
-      for i in range(1, len(filter_unplayables)):
-        if filter_unplayables[i] // 10 == partition_ranks[len(partition_ranks) - 1][0] // 10:
-          partition_ranks[len(partition_ranks) - 1].append(filter_unplayables[i])
-        else:
-          partition_ranks.append([filter_unplayables[i]])
-      # 3. add all perms in each rank division
-      for partition in partition_ranks:
-        ret += gameplay.allCombinations(partition, x)
-    # 4. finish
-
-    return ret if x == 4 else sorted(ret, key = lambda i: gameplay.parseHand(i)['power'])
-
-  def all5x(self, hand, x):
-    # get straight flushes, four of a kinds, full houses, flushes, and straights
-
-    if len(hand) < 5: # end immediately if no playable hands
-      return []
-
-    def rank(card):
-      return card // 10
-    def suit(card):
-      return card % 10
-
-    ret = []
-    ranks = [rank(i) for i in hand]
-
-    if x == '4x':
-      # 1. get all fours
-      fours = self.all1x2x3x4x(hand, 4) # like [[x, x, x, x]]
-      # 2. for each four, add a single of every other rank
-      for four in fours:
-        for i in hand:
-          if rank(i) != rank(four[0]):
-            ret.append(four + [i])
-    elif x == 'full house':
-      # 1. get all pairs and triplets
-      pairs = self.all1x2x3x4x(hand, 2)
-      triplets = self.all1x2x3x4x(hand, 3)
-      # 2. for each pair, add a triplet of every other rank
-      for pair in pairs:
-        for trip in triplets:
-          if rank(trip[0]) != rank(pair[0]):
-            ret.append(pair + trip)
-    else:
-      # generate flushes and straights without returning. the intersection of these will be straight flushes
-      # 1. generate all flushes with unique max rank with lowest 4 as fodder
-      flushes = []
-      for _suit in range(4):
-        filter_suit = [i for i in hand if suit(i) == _suit]
-        if len(filter_suit) < 5:
-          continue
-        for flush_max_card in filter_suit[4:]:
-          flushes.append(filter_suit[:4] + [flush_max_card])
-      # 2. generate all straights
-      straights = []
-      for i in range(len(hand)):
-        if (rank(hand[i]) + 1 in ranks) and (rank(hand[i]) + 2 in ranks) and (rank(hand[i]) + 3 in ranks) and (rank(hand[i]) + 4 in ranks):
-          new_straights = [[hand[i]]]
-          additions = []
-          for next_rank in [1, 2, 3, 4]:
-            all_next_rank = [j for j in hand if rank(j) == ranks[i] + next_rank]
-            for next_rank_card in all_next_rank:
-              for straight in new_straights:
-                additions.append(straight + [next_rank_card])
-            new_straights = additions
-            additions = []
-          straights += [straight for straight in new_straights if len(straight) == 5]
-      # 3. generate all straight flushes
-      # note: can't do [straight for straight in straights if straight in flushes] because flushes doesn't contain every single flush
-      straight_flushes = [straight for straight in straights if gameplay.allEqual([suit(i) for i in straight])]
-      # 4. prepare to return
-      if x == 'straight':
-        ret = [straight for straight in straights if straight not in straight_flushes]
-      elif x == 'flush':
-        ret = [flush for flush in flushes if flush not in straight_flushes]
-      elif x == 'straight flush':
-        ret = straight_flushes
-    # 4. finish
-    return sorted(ret, key = lambda i: gameplay.parseHand(i)['power'])
-
-ai = _ai()
+ai = Ai()
 
 def selectBestHandToPlay(hand, table, opponentCards, aggression):
   return ai.selectBestHandToPlay(hand, table, opponentCards, aggression)

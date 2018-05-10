@@ -1,4 +1,4 @@
-# gameplay.py stores algorithms pertaining to gameplay logic. there is no shared data here.
+# py stores algorithms pertaining to gameplay logic. there is no shared data here.
 
 from random import shuffle
 
@@ -98,3 +98,131 @@ def allCombinations(a, size):
       return [a]
   else:
     return []
+
+def all1x2x3x4x(hand, x):
+  # get all possible singles, pairs, triplets, or fours (x = 1, 2, 3, 4)
+
+  ret = []
+
+  if x == 1:
+    ret = [[i] for i in hand]
+  else:
+    # 1. filter out singles, pairs, if necessary.
+    filter_unplayables = [i for i in hand if rankCount(i, hand) >= x]
+    if filter_unplayables == []: # end immediately if no playable hands
+      return []
+    # 2. partition by rank [[x, x], [x, x]]
+    partition_ranks = [[filter_unplayables[0]]]
+    for i in range(1, len(filter_unplayables)):
+      if filter_unplayables[i] // 10 == partition_ranks[len(partition_ranks) - 1][0] // 10:
+        partition_ranks[len(partition_ranks) - 1].append(filter_unplayables[i])
+      else:
+        partition_ranks.append([filter_unplayables[i]])
+    # 3. add all perms in each rank division
+    for partition in partition_ranks:
+      ret += allCombinations(partition, x)
+  # 4. finish
+
+  return ret if x == 4 else sorted(ret, key = lambda i: parseHand(i)['power'])
+
+def all5x(hand, x):
+  # get straight flushes, four of a kinds, full houses, flushes, and straights
+
+  if len(hand) < 5: # end immediately if no playable hands
+    return []
+
+  def rank(card):
+    return card // 10
+  def suit(card):
+    return card % 10
+
+  ret = []
+  ranks = [rank(i) for i in hand]
+
+  if x == '4x':
+    # 1. get all fours
+    fours = all1x2x3x4x(hand, 4) # like [[x, x, x, x]]
+    # 2. for each four, add a single of every other rank
+    for four in fours:
+      for i in hand:
+        if rank(i) != rank(four[0]):
+          ret.append(four + [i])
+  elif x == 'full house':
+    # 1. get all pairs and triplets
+    pairs = all1x2x3x4x(hand, 2)
+    triplets = all1x2x3x4x(hand, 3)
+    # 2. for each pair, add a triplet of every other rank
+    for pair in pairs:
+      for trip in triplets:
+        if rank(trip[0]) != rank(pair[0]):
+          ret.append(pair + trip)
+  else:
+    # generate flushes and straights without returning. the intersection of these will be straight flushes
+    # 1. generate all flushes with unique max rank with lowest 4 as fodder
+    flushes = []
+    for _suit in range(4):
+      filter_suit = [i for i in hand if suit(i) == _suit]
+      if len(filter_suit) < 5:
+        continue
+      for flush_max_card in filter_suit[4:]:
+        flushes.append(filter_suit[:4] + [flush_max_card])
+    # 2. generate all straights
+    straights = []
+    for i in range(len(hand)):
+      if (rank(hand[i]) + 1 in ranks) and (rank(hand[i]) + 2 in ranks) and (rank(hand[i]) + 3 in ranks) and (rank(hand[i]) + 4 in ranks):
+        new_straights = [[hand[i]]]
+        additions = []
+        for next_rank in [1, 2, 3, 4]:
+          all_next_rank = [j for j in hand if rank(j) == ranks[i] + next_rank]
+          for next_rank_card in all_next_rank:
+            for straight in new_straights:
+              additions.append(straight + [next_rank_card])
+          new_straights = additions
+          additions = []
+        straights += [straight for straight in new_straights if len(straight) == 5]
+    # 3. generate all straight flushes
+    # note: can't do [straight for straight in straights if straight in flushes] because flushes doesn't contain every single flush
+    straight_flushes = [straight for straight in straights if allEqual([suit(i) for i in straight])]
+    # 4. prepare to return
+    if x == 'straight':
+      ret = [straight for straight in straights if straight not in straight_flushes]
+    elif x == 'flush':
+      ret = [flush for flush in flushes if flush not in straight_flushes]
+    elif x == 'straight flush':
+      ret = straight_flushes
+  # 4. finish
+  return sorted(ret, key = lambda i: parseHand(i)['power'])
+
+def possibilities(hand, table):
+  # given a hand and a table, return all possible valid combinations to play to the table
+
+  ret = []
+  table = parseHand(table)
+
+  # 1. add all possibilities (algorithm generates no duplicates)
+  if not table:
+    # what hands the AI will play first is determined in the weight() method.
+    # the order is as below, although the below has no bearing on the actual order.
+    ret += all5x(hand, 'straight')
+    ret += all1x2x3x4x(hand, 2)
+    ret += all1x2x3x4x(hand, 1)
+    ret += all1x2x3x4x(hand, 3)
+    ret += all5x(hand, 'full house')
+    ret += all5x(hand, 'flush')
+    ret += all5x(hand, '4x')
+    ret += all5x(hand, 'straight flush')
+    return ret
+  elif table['combo'] in ['1x', '2x', '3x']:
+    return [i for i in all1x2x3x4x(hand, int(table['combo'][0])) if parseHand(i)['power'] > table['power']]
+  elif table['combo'] == '5x':
+    if table['power'] < 2000:
+      ret += all5x(hand, 'straight')
+    if table['power'] < 3000:
+      ret += all5x(hand, 'flush')
+    if table['power'] < 4000:
+      ret += all5x(hand, 'full house')
+    if table['power'] < 5000:
+      ret += all5x(hand, '4x')
+    if table['power'] < 6000:
+      ret += all5x(hand, 'straight flush') # ai will always add straight flush.
+    return [i for i in ret if parseHand(i)['power'] > table['power']]
