@@ -78,8 +78,8 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Game extends C
           } else {
             this.setState({ p2_wins: this.state.p2_wins + 1 });
           }
-          await this.wait(1000);
           await client.newInstruction('new game');
+          await this.wait(1000);
         }
         // read the instruction to the client
         client.readInstruction(instruction);

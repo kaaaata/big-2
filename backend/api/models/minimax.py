@@ -15,8 +15,12 @@ class Node:
     self.depth = depth # for testing for now
 
   def set_children(self):
-    # stop creating children if the game has ended either way
-    if not self.p1 or not self.p2:
+    # if the game is won, set the score to 100 or -100 depending on who won, and return
+    if not self.p1:
+      self.score = 100
+      return
+    elif not self.p2:
+      self.score = -100
       return
 
     # generate all possibilities given hand and table
@@ -30,33 +34,26 @@ class Node:
     # iterate through all possibilities, and add then as children nodes
     for possibility in possibilities:
       # update p1, p2
-      p1 = [i for i in self.p1 if i not in possibility]
-      p2 = [i for i in self.p2 if i not in possibility]
+      if self.turn == 'p1':
+        p1 = [i for i in self.p1 if i not in possibility]
+        p2 = self.p2
+      elif self.turn == 'p2':
+        p1 = self.p1
+        p2 = [i for i in self.p2 if i not in possibility]
       self.children.append(Node(p1, p2, possibility, 'p1' if self.turn == 'p2' else 'p2', self.depth + 1))
-    # recursively populate grandchildrens
+    # recursively populate children's children with minimaxed scores
     for i in self.children:
       i.set_children()
+      # set the score to the possible winning score of the next depth
+      if i.score > 0:
+        self.score = i.score - self.depth
+      elif i.score < 0:
+        self.score = i.score + self.depth
 
-  def perform_minimax(self):
-    # if the game is won, set the score to 100 or -100 depending on who won
-    if not self.p1:
-      self.score = 100
-      return
-    if not self.p2:
-      self.score = -100
-      return
-
-    # recursively call perform_minimax to assign scores to every node
+  def count_nodes(self):      
+    # print('depth', self.depth, 'p1', self.p1, 'p2', self.p2, 'turn', self.turn, 'table', self.table, 'score', self.score)
+    # print(' -- done -- ')
+    count = 1
     for i in self.children:
-      i.perform_minimax()
-
-    # set the score to the possible winning score of the next depth
-    for i in self.children:
-      if i.score == 100 or i.score == -100:
-        self.score = i.score
-
-  def in_order_print(self):
-    print('depth', self.depth, 'p1', self.p1, 'p2', self.p2, 'turn', self.turn, 'table', self.table, 'score', self.score)
-    print(' -- done -- ')
-    for i in self.children:
-      i.in_order_print()
+      count += i.count_nodes()
+    return count

@@ -90,10 +90,16 @@ class aiTestCase(SimpleTestCase):
   #   print('--> ai training was successful for 625 games')
 
   def test_minimax(self):
-    minimax_tree = minimax.Node([31, 32, 61, 62], [41, 42, 51, 52], [], 'p1')
+    # simple case
+    p1 = [31, 71]
+    p2 = [51, 61]
+
+    # complex case
+    # p1 = [31, 32, 61, 62, 73, 90, 92, 140]
+    # p2 = [41, 42, 51, 52, 70, 91, 93, 141]
+    minimax_tree = minimax.Node(p1, p2, [], 'p1')
     self.assertEqual(minimax_tree.score, 0)
     print('--> minimax tree got created')
 
     minimax_tree.set_children()
-    minimax_tree.perform_minimax()
-    minimax_tree.in_order_print()
+    print('# nodes:', minimax_tree.count_nodes())

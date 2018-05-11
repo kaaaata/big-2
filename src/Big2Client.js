@@ -56,10 +56,8 @@ export default class Big2Game {
       this.hands[player].render();
       // check win, otherwise proceed with gameplay
       if (!this.hands[this.p1].cards.length) {
-        await this.wait(1000);
         await this.newInstruction('p1 wins');
       } else if (!this.hands[this.p2].cards.length) {
-        await this.wait(1000);
         await this.newInstruction('p2 wins');
       } else {
         if (!this.game_id.startsWith('AI_VS_AI') && player !== this.you) this.gameActive = true;
@@ -73,16 +71,14 @@ export default class Big2Game {
       this.table.fadeOut();
       if (player !== this.you) this.gameActive = true;
     } else if (action === 'new game') {
-      setTimeout(() => {
-        this.initDeckPropertiesAndMount();
-        this.initGame(cards.p1_hand, cards.p2_hand, cards.table);
-      }, 2000);
+      this.initDeckPropertiesAndMount();
+      this.initGame(cards.p1_hand, cards.p2_hand, cards.table);
     }
   }
 
   async aiTurn(player) {
     if (this.game_id.startsWith('HUMAN_VS_AI') || this.game_id.startsWith('AI_VS_AI')) {
-      await this.wait(1000);
+      await this.wait(500);
       const state = {
         hand: JSON.stringify(this.hands[player].big2Ranks()),
         table: JSON.stringify(this.table.big2Ranks()),
@@ -100,11 +96,13 @@ export default class Big2Game {
 
   async startAI() {
     // make AI play against each other, or make it P1's turn
+    console.log('startAI() started')
     while (this.hands[this.p1].cards.length > 0 && this.hands[this.p2].cards.length > 0) {
       await this.aiTurn(this.p1);
       if (this.hands[this.p1].cards.length === 0) break;
       await this.aiTurn(this.p2);
     }
+    console.log('startAI() ended')
   }
 
   initDeckPropertiesAndMount() {
