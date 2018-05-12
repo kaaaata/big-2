@@ -1,7 +1,7 @@
 %game-dimensions
   width: 800px
   height: 600px
-  
+
 .game
   .title
     text-align: center
@@ -12,14 +12,16 @@
     font-size: 36px
     &.top
       margin-top: 25px // to roughly match margin in public/example.css
+    &.bottom
+      margin-top: 7.5px
   .client
     @extend %game-dimensions  
     margin: auto
     #container
       @extend %game-dimensions  
       border-radius: 25px
-      box-shadow: 4px 4px 16px teal
-      background-color: rgba(255, 255, 255, 0.3)
+      box-shadow: 4px 4px 32px black
+      background-color: rgba(255, 255, 255, 0.5)
       // reset css in public/example.css for #container div
       position: relative
       top: 0

@@ -47,6 +47,7 @@ class Games:
 
     self.games = [game] + self.games
     return game
+
   def readInstruction(self, instruction):
     # read instruction from client, modifying the game object
     game_id = instruction['game_id']
@@ -77,6 +78,7 @@ class Games:
         # add the instruction for other clients to poll
         self.instructions = [i for i in self.instructions if i['game_id'] != game_id] + [instruction]
         return game
+
   def fetchInstruction(self, game_id):
     # when clients poll for instruction, retrieve both the instruction and the game object
     instruction = [i for i in self.instructions if i['game_id'] == game_id]
@@ -84,6 +86,7 @@ class Games:
       'instruction': instruction[0] if instruction != [] else None,
       'game': [i for i in self.games if i['id'] == game_id][0],
     }
+
   def joinGame(self, gameInfo):
     # join a player into a game as a player, or if there is no room, as a spectator, returning the game object
     game_id = gameInfo['game_id']
@@ -96,8 +99,9 @@ class Games:
         else:
           self.games[i]['spectators'].append(player)
         return self.games[i]
-  # decrease player life every 1s if life reaches 0, player is 'disconnected'. life resets to self.startingLife every 5s from client.
+
   def age(self):
+    # decrease player life every 1s if life reaches 0, player is 'disconnected'. life resets to self.startingLife every 5s from client.
     game_ids_to_delete = []
     for i in range(len(self.games)):
       for j in range(len(self.games[i]['players'])):
@@ -113,6 +117,7 @@ class Games:
           del self.games[i]['spectators'][j]
     self.games = [i for i in self.games if i['id'] not in game_ids_to_delete]
     self.instructions = [i for i in self.instructions if i['game_id'] not in game_ids_to_delete]
+    
   def stayAlive(self, player_id):
     for i in range(len(self.games)):
       for j in range(len(self.games[i]['players'])):
@@ -135,15 +140,6 @@ def fetchInstruction(game_id):
   return games.fetchInstruction(game_id)
 def sendInstruction(newInstruction):
   return games.readInstruction(newInstruction)
-
-  # if (newInstruction['action'] == 'new game'):
-  #   deck = gameplay.generateRandomDeck()
-  #   newInstruction['cards'] = {
-  #     'p1_hand': deck[:18],
-  #     'p2_hand': deck[18:36],
-  #     'table': [],
-  #   }
-  # return games.addInstruction(newInstruction)
 
 def stayAlive(player_id):
   games.stayAlive(player_id)

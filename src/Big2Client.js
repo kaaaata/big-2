@@ -150,6 +150,7 @@ export default class Big2Game {
       };
       card.activate = () => card.animate('activate');
       card.$el.onclick = async() => {
+        console.log(card)
         if (!this.spectating) await this.newInstruction('activate', [card.big2rank]);
       };
     });

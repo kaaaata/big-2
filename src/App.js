@@ -22,6 +22,7 @@ export default withRouter(connect(mapStateToProps, mapDispatchToProps)(class App
 
     return (
       <main className="app">
+        <div className="filter" />
         <Switch>
           <Route
             exact path="/"

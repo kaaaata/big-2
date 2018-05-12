@@ -1,19 +1,26 @@
 .home {
-  width: 500px;
-  margin: auto; }
+  width: 750px;
+  height: 300px;
+  margin: 200px auto 0 auto;
+  border: 1px solid black;
+  border-radius: 25px;
+  box-shadow: 4px 4px 32px black;
+  background-color: rgba(255, 255, 255, 0.5);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center; }
   .home article {
-    margin: 0 auto 25px auto; }
+    margin-bottom: 20px; }
   .home .title {
     text-align: center;
-    font-size: 24px;
-    margin-top: 250px; }
+    font-size: 60px; }
   .home .player input {
-    font-size: 20px;
+    font-size: 30px;
     border-radius: 20px; }
   .home .games {
     display: flex;
-    justify-content: center;
-    margin: auto; }
+    justify-content: center; }
     .home .games button {
       margin: 0 10px; }
     .home .games .games-dropdown {
