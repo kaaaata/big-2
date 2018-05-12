@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import * as actions from './redux/actions';
 import * as django from './serverWrappers';
 import shortid from 'shortid';
-import { Button, Form, FormGroup, Input, Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
+import { Button, Form, FormGroup, Label, Input, Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 
 import './styles/Home.css';
 
@@ -97,11 +97,12 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Home extends C
     return (
       <section className="home">
         <article className="title">
-          Cat's Big 2
+          <h1>Big 2</h1>
         </article>
         <article className="player">
-          <Form onSubmit={(e) => e.preventDefault()}>
+          <Form inline onSubmit={(e) => e.preventDefault()}>
             <FormGroup>
+              <Label>Name:&nbsp;&nbsp;</Label>
               <Input
                 value={player.name}
                 onChange={(e) => setPlayer({ id: player.id, name: e.target.value })}
