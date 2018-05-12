@@ -16,6 +16,8 @@ export default class Big2Game {
     this.p1 = this.player1.id; this.p2 = this.player2.id; // assign id to short variable for easy hand referencing
     this.you = you; // your player id
     this.gameActive = false; // whether you can make a move (e.g. can't make a move during opponent's turn)
+    this.spectating = this.p1 !== you && this.p2 !== you; // is this client a spectator?
+    this.gameover = false; // used to terminate ai scripts
     this.hands = {
       [this.p1]: null,
       [this.p2]: null,
@@ -23,7 +25,7 @@ export default class Big2Game {
     this.table = null;
 
     // initalize games with given player hands and table state
-    this.initGame(game.p1_hand, game.p2_hand, game.table);
+    this.initGame(game.p1_hand, game.p2_hand, game.table, game.active_cards);
   };
 
   wait(ms) {
@@ -43,36 +45,33 @@ export default class Big2Game {
       cards,
     };
 
-    await django.post('sendInstruction', instruction);
+    return await django.post('sendInstruction', instruction);
   }
 
   async readInstruction(instruction) {
     const { player, action, cards } = instruction;
 
-    if (action === 'playActiveCards') {
+    if (action === 'play_active_cards') {
       if (this.table.cards.length) this.table.fadeOut();
       this.table = new Big2Hand(this.hands[player].playActiveCards());
       this.table.render('table');
       this.hands[player].render();
-      // check win, otherwise proceed with gameplay
       if (!this.hands[this.p1].cards.length) {
-        await this.newInstruction('p1 wins');
+        this.gameover = true;
+        await this.newInstruction('p1_wins');
       } else if (!this.hands[this.p2].cards.length) {
-        await this.newInstruction('p2 wins');
-      } else {
-        if (!this.game_id.startsWith('AI_VS_AI') && player !== this.you) this.gameActive = true;
+        this.gameover = true;
+        await this.newInstruction('p2_wins');
       }
+      if (!this.game_id.startsWith('AI_VS_AI') && player !== this.you) this.gameActive = true;
     } else if (action === 'activate') {
       this.hands[player].activate(cards);
-    } else if (action === 'deactivateAllCards') {
+    } else if (action === 'deactivate_all_cards') {
       this.hands[player].deactivateAllCards();
     } else if (action === 'pass') {
       this.hands[player].deactivateAllCards();
       this.table.fadeOut();
       if (player !== this.you) this.gameActive = true;
-    } else if (action === 'new game') {
-      this.initDeckPropertiesAndMount();
-      this.initGame(cards.p1_hand, cards.p2_hand, cards.table);
     }
   }
 
@@ -88,7 +87,7 @@ export default class Big2Game {
       const bestHandToPlay = await django.get('selectBestHandToPlay', state);
       await this.newInstruction('activate', bestHandToPlay, player);
       await this.wait(500);
-      await this.newInstruction('playActiveCards', null, player);
+      await this.newInstruction('play_active_cards', null, player);
       this.gameActive = true;
       return null;
     }
@@ -96,13 +95,10 @@ export default class Big2Game {
 
   async startAI() {
     // make AI play against each other, or make it P1's turn
-    console.log('startAI() started')
-    while (this.hands[this.p1].cards.length > 0 && this.hands[this.p2].cards.length > 0) {
+    while (!this.gameover) {
       await this.aiTurn(this.p1);
-      if (this.hands[this.p1].cards.length === 0) break;
       await this.aiTurn(this.p2);
     }
-    console.log('startAI() ended')
   }
 
   initDeckPropertiesAndMount() {
@@ -124,12 +120,12 @@ export default class Big2Game {
       card.x = 400;
       card.y = 300;
       card.$el.style.transition = 'opacity 0.25s ease-out';
-      card.animate = (destination, x = card.x, offset = 0, delay = 0) => {
+      card.animate = (destination, x = card.x, offset = 0, delay = 0, instant = false) => {
         if (destination !== 'activate') card.location = destination;
         const animateArgs = {
           x: x + offset * 15,
-          delay: delay + 20 * offset,
-          duration: 500,
+          delay: instant ? 0 : (delay + 20 * offset),
+          duration: instant ? 0 : 500,
           ease: 'quartOut',
         };
 
@@ -154,19 +150,12 @@ export default class Big2Game {
       };
       card.activate = () => card.animate('activate');
       card.$el.onclick = async() => {
-        const instruction = {
-          id: shortid.generate(),
-          player: this.you,
-          action: 'activate',
-          cards: [card.big2rank],
-          game_id: this.game_id,
-        };
-        await django.post('sendInstruction', instruction);
+        if (!this.spectating) await this.newInstruction('activate', [card.big2rank]);
       };
     });
   }
 
-  initGame(p1_hand, p2_hand, table) {
+  initGame(p1_hand, p2_hand, table, active_cards) {
     // set keyboard events
     document.onkeyup = async(e) => {
 			if (this.gameActive) {
@@ -180,10 +169,10 @@ export default class Big2Game {
           };
 
           if (await django.post('validPlay', play)) {
-            await this.newInstruction('playActiveCards');
+            await this.newInstruction('play_active_cards');
             this.aiTurn(this.p2);
           } else {
-            await this.newInstruction('deactivateAllCards');
+            await this.newInstruction('deactivate_all_cards');
             this.gameActive = true;
           }
         } else if (e.keyCode === 80) {
@@ -193,7 +182,7 @@ export default class Big2Game {
         }
       } else {
         // deactivate all cards if you try to play something not on your turn
-        if (e.keyCode === 13 || e.keyCode === 80) await this.newInstruction('deactivateAllCards');
+        if (e.keyCode === 13 || e.keyCode === 80) await this.newInstruction('deactivate_all_cards');
       }
     };
 
@@ -207,27 +196,38 @@ export default class Big2Game {
     // move all cards to center of table to prepare for dealing
     this.deck.cards.forEach((card, index) => {
       card.setSide('back');
-      card.animate('table', 400, 0, 0);
+      card.animate('table', 400, 0, 0, this.spectating);
     });
 
     // deal the cards
-    this.hands[this.p1].render(this.p1 === this.you || this.game_id.startsWith('AI_VS_AI') ? 'bottom' : 'top', 1000);
-    this.hands[this.p2].render(this.p2 === this.you ? 'bottom' : 'top', 1000);
-    this.table.render('table', 1000);
+    this.hands[this.p1].render(this.p1 === this.you || this.spectating ? 'bottom' : 'top', 1000, this.spectating);
+    this.hands[this.p2].render(this.p2 === this.you ? 'bottom' : 'top', 1000, this.spectating);
+    this.table.render('table', 1000, this.spectating);
 
     // turn dealt cards face-up, and move rest of cards to trash
     this.deck.cards.forEach((card, index) => {
       if (this.table.has(card) || this.hands[this.p1].has(card) || this.hands[this.p2].has(card)) {
         card.setSide('front');
       } else {
-        card.animate('trash', card.x, index, 1000);
+        card.animate('trash', card.x, index, 1000, this.spectating);
       }
     });
 
-    // conditionally start AI_VS_AI gameplay
-    if (this.game_id.startsWith('AI_VS_AI')) this.startAI();
-
-    // make it p1's turn
-    if (!this.game_id.startsWith('AI_VS_AI') && this.p1 === this.you) this.gameActive = true;
+    if (this.spectating) {
+      setTimeout(() => {
+        // activate all cards that were activated already
+        this.hands[this.p1].activate(active_cards);
+        this.hands[this.p2].activate(active_cards);
+        // conditionally start AI_VS_AI gameplay
+        if (this.game_id.startsWith('AI_VS_AI')) {
+          // only works for one spectator currently
+          this.gameover = false;
+          this.startAI();
+        }
+      }, 500);
+    } else {
+      // make it p1's turn
+      if (this.p1 === this.you) this.gameActive = true;
+    }
   }
 }

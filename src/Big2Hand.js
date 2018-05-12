@@ -46,11 +46,11 @@ export default class Big2Hand {
     this.cards = [];
   }
 
-  render(destination = null, delay = 0) {
+  render(destination = null, delay = 0, instant = false) {
     this.cards.sort((a, b) => a.big2rank - b.big2rank);
     this.cards.forEach((card, index) => {
       card.$el.style.zIndex = index;
-      card.animate(destination || card.location, 400, index - ~~(this.cards.length / 2), delay);
+      card.animate(destination || card.location, 400, index - ~~(this.cards.length / 2), delay, instant);
     });
   }
 }

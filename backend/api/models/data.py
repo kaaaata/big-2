@@ -11,7 +11,6 @@ class Games:
     self.instructions = []
     self.startingLife = 3
 
-  # self.games methods
   def newGame(self, newGame):
     # initialize a new game with one player in the p1 slot, returning the newly created game object
     # generate starting hands from randomized deck of big2ranks
@@ -23,6 +22,7 @@ class Games:
       'players': [],
       'p1_hand': deck[:18],
       'p2_hand': deck[18:36],
+      'active_cards': [],
       'table': [],
       'spectators': []
     }
@@ -47,6 +47,43 @@ class Games:
 
     self.games = [game] + self.games
     return game
+  def readInstruction(self, instruction):
+    # read instruction from client, modifying the game object
+    game_id = instruction['game_id']
+    action = instruction['action']
+    player = instruction['player']
+    cards = instruction['cards']
+
+    # modify the game object
+    for game in self.games:
+      if game['id'] == game_id:
+        # activate or deactivate cards
+        if action == 'activate':
+          game['active_cards'] += cards
+          game['active_cards'] = [i for i in game['active_cards'] if game['active_cards'].count(i) == 1]
+        elif action == 'play_active_cards':
+          hand = 'p1_hand' if player == game['players'][0]['id'] else 'p2_hand'
+          cards = [i for i in game['active_cards'] if i in game[hand]]
+          game['table'] = cards
+          game[hand] = [i for i in game[hand] if i not in cards]
+          game['active_cards'] = [i for i in game['active_cards'] if i not in cards]
+        elif action == 'new_game':
+          deck = gameplay.generateRandomDeck()
+          game['p1_hand'] = deck[:18]
+          game['p2_hand'] = deck[18:36]
+          game['active_cards'] = []
+          game['table'] = []
+
+        # add the instruction for other clients to poll
+        self.instructions = [i for i in self.instructions if i['game_id'] != game_id] + [instruction]
+        return game
+  def fetchInstruction(self, game_id):
+    # when clients poll for instruction, retrieve both the instruction and the game object
+    instruction = [i for i in self.instructions if i['game_id'] == game_id]
+    return {
+      'instruction': instruction[0] if instruction != [] else None,
+      'game': [i for i in self.games if i['id'] == game_id][0],
+    }
   def joinGame(self, gameInfo):
     # join a player into a game as a player, or if there is no room, as a spectator, returning the game object
     game_id = gameInfo['game_id']
@@ -85,14 +122,6 @@ class Games:
         if self.games[i]['spectators'][j]['id'] == player_id:
           self.games[i]['spectators'][j]['life'] = self.startingLife
 
-  # self.instructions methods
-  def fetchInstruction(self, game_id):
-    ret = [i for i in self.instructions if i['game_id'] == game_id]
-    return ret[0] if ret != [] else None
-  def addInstruction(self, newInstruction):
-    self.instructions = [i for i in self.instructions if i['game_id'] != newInstruction['game_id']] + [newInstruction]
-    return newInstruction
-
 games = Games()
 
 def allGames():
@@ -105,14 +134,16 @@ def joinGame(game):
 def fetchInstruction(game_id):
   return games.fetchInstruction(game_id)
 def sendInstruction(newInstruction):
-  if (newInstruction['action'] == 'new game'):
-    deck = gameplay.generateRandomDeck()
-    newInstruction['cards'] = {
-      'p1_hand': deck[:18],
-      'p2_hand': deck[18:36],
-      'table': [],
-    }
-  return games.addInstruction(newInstruction)
+  return games.readInstruction(newInstruction)
+
+  # if (newInstruction['action'] == 'new game'):
+  #   deck = gameplay.generateRandomDeck()
+  #   newInstruction['cards'] = {
+  #     'p1_hand': deck[:18],
+  #     'p2_hand': deck[18:36],
+  #     'table': [],
+  #   }
+  # return games.addInstruction(newInstruction)
 
 def stayAlive(player_id):
   games.stayAlive(player_id)

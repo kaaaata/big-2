@@ -57,34 +57,48 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Game extends C
   }
 
   async newGame() {
-    const { player, game } = this.props;
+    const { player, game, setGame } = this.props;
     let client = new Big2Client(document.getElementById('container'), game, player.id);
 
     let instruction = null; // receive the latest instruction from server in this variable
-    let lastInstruction_id = null; // keep track of the last instruction processed
+    // keep track of the last instruction processed, to avoid processing it twice
+    let lastInstruction = (await django.get('fetchInstruction', { game_id: game.id })).instruction;
+    let lastInstruction_id = client.spectating
+      ? lastInstruction
+        ? lastInstruction.id
+        : null
+      : null;
     while (true) {
       // server ping tick frequency
       await this.wait(100);
       // pull down instruction from server
-      instruction = await django.get('fetchInstruction', { game_id: game.id });
+      const output = await django.get('fetchInstruction', { game_id: game.id });
+      instruction = output.instruction;
       // if instruction hasn't been already processed, process it
       if (instruction && (instruction.id !== lastInstruction_id || !lastInstruction_id)) {
         console.log(instruction.action);
         // if a player wins, do this...
-        if (instruction.action === 'p1 wins' || instruction.action === 'p2 wins') {
+        if (instruction.action === 'p1_wins' || instruction.action === 'p2_wins') {
           // put something here to determine whether a new game should be booted up
-          if (instruction.action === 'p1 wins') {
+          if (instruction.action === 'p1_wins') {
             this.setState({ p1_wins: this.state.p1_wins + 1 });
           } else {
             this.setState({ p2_wins: this.state.p2_wins + 1 });
           }
-          await client.newInstruction('new game');
-          await this.wait(1000);
+          await this.wait(2000);
+          const newCards = await client.newInstruction('new_game');
+          client.initDeckPropertiesAndMount();
+          client.initGame(newCards.p1_hand, newCards.p2_hand, newCards.table, newCards.active_cards);
+          setGame(output.game);
+          lastInstruction_id = instruction.id;
+        } else {
+          // set the game in Redux
+          setGame(output.game);
+          // read the instruction to the client
+          client.readInstruction(instruction);
+          // keep track of the last instruction processed, to avoid processing the same instruction twice
+          lastInstruction_id = instruction.id;
         }
-        // read the instruction to the client
-        client.readInstruction(instruction);
-        // keep track of the last instruction processed, to avoid processing the same instruction twice
-        lastInstruction_id = instruction.id;
       }
     }
   }

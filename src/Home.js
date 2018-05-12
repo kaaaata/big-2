@@ -30,7 +30,7 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Home extends C
   }
 
   async newGame(button) {
-    const { player, syncGames, setGame } = this.props;
+    const { player, setGame } = this.props;
     if (player.name === '') return alert('Please enter your name.');
     let newGame = {};
     if (button === 'New Game') {
@@ -56,12 +56,11 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Home extends C
     const game = await django.post('newGame', newGame);
 
     setGame(game);
-    syncGames(await django.get('allGames'));
     this.setState({ redirect: true });
   }
 
   async joinGame(game_id) {
-    const { setGame, player, syncGames } = this.props;
+    const { setGame, player } = this.props;
     if (player.name === '') return alert('Please enter your name.');
     const gameInfo = {
       game_id,
@@ -70,7 +69,6 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Home extends C
     const game = await django.post('joinGame', gameInfo);
 
     setGame(game);
-    syncGames(await django.get('allGames'));
     this.setState({ redirect: true });
   }
 
