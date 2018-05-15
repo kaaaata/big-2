@@ -63,7 +63,7 @@ export default class Big2Game {
         this.gameover = true;
         await this.newInstruction('p2_wins');
       }
-      if (!this.game_id.startsWith('AI_VS_AI') && player !== this.you) this.gameActive = true;
+      if (!this.game_id.startsWith('AIvAI_') && player !== this.you) this.gameActive = true;
     } else if (action === 'activate') {
       this.hands[player].activate(cards);
     } else if (action === 'deactivate_all_cards') {
@@ -76,8 +76,8 @@ export default class Big2Game {
   }
 
   async aiTurn(player) {
-    if (this.game_id.startsWith('HUMAN_VS_AI') || this.game_id.startsWith('AI_VS_AI')) {
-      await this.wait(500);
+    if (this.game_id.startsWith('1vAI_') || this.game_id.startsWith('AIvAI_')) {
+      await this.wait(1000);
       const state = {
         hand: JSON.stringify(this.hands[player].big2Ranks()),
         table: JSON.stringify(this.table.big2Ranks()),
@@ -219,8 +219,8 @@ export default class Big2Game {
         // activate all cards that were activated already
         this.hands[this.p1].activate(active_cards);
         this.hands[this.p2].activate(active_cards);
-        // conditionally start AI_VS_AI gameplay
-        if (this.game_id.startsWith('AI_VS_AI')) {
+        // conditionally start AIvAI_ gameplay
+        if (this.game_id.startsWith('AIvAI_')) {
           // only works for one spectator currently
           this.gameover = false;
           this.startAI();

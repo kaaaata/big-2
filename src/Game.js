@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
+import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import * as actions from './redux/actions';
 import * as django from './serverWrappers';
+import { Button } from 'reactstrap';
 
 import Big2Client from './Big2Client';
 import './styles/Game.css';
@@ -109,14 +111,32 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Game extends C
 
   render() {
     const { p1_wins, p2_wins } = this.state;
-    const { player, players } = this.props;
+    const { game, player, players } = this.props;
     const opponent = players[1]
       ? (players[1].id === player.id ? players[0].name : players[1].name)
       : null;
     
     return (
       <section className="game">
-        <article className="title">Big 2</article>
+        <section className="header">
+          <article className="back">
+            <Link className="link" to="/">
+              <Button
+                color="danger"
+                onClick={() => clearInterval(this.state.interval)}
+              >
+                Back
+              </Button>
+            </Link>
+          </article>
+          <article className="title">
+            {game.players[0].name} vs. {game.players[1].name}
+          </article>
+          <article>
+            {}
+          </article>        
+        </section>
+
         <article className="player top">{opponent || 'waiting for player...'} ({p2_wins} wins)</article>
         <article className="client">
           <link rel="stylesheet" href="example.css" />

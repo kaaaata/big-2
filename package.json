@@ -17,7 +17,7 @@
     "eject": "react-scripts eject"
   },
   "engines": {
-    "node" : ">=8.10.0"
+    "node": ">=8.10.0"
   },
   "dependencies": {
     "ajv": "^6.0.0",
@@ -33,6 +33,7 @@
     "react-scripts": "1.1.1",
     "reactstrap": "^5.0.0-beta.3",
     "redux": "^3.7.2",
-    "shortid": "^2.2.8"
+    "shortid": "^2.2.8",
+    "styled-components": "^3.2.6"
   }
 }

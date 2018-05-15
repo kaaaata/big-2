@@ -41,13 +41,13 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Home extends C
       };
     } else if (button === 'Play AI') {
       newGame = {
-        id: 'HUMAN_VS_AI' + shortid.generate(),
+        id: '1vAI_' + shortid.generate(),
         p1: player,
         p2: { id: shortid.generate(), name: 'Cat-Bot 2000' },
       };
     } else if (button === 'AI vs. AI') {
       newGame = {
-        id: 'AI_VS_AI' + shortid.generate(),
+        id: 'AIvAI_' + shortid.generate(),
         p1: { id: shortid.generate(), name: 'Cat-Bot 2000' },
         p2: { id: shortid.generate(), name: 'Cat-Bot 2000' },
         spectator: player,
@@ -135,7 +135,7 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Home extends C
               onClick={() => this.newGame(button)}
             >
               {redirect &&
-                <Redirect to={`/game/${game.id}`} />
+                <Redirect to={`/${game.id}`} />
               }
               {button}
             </Button>

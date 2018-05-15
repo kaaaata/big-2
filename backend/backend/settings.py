@@ -127,7 +127,10 @@ def skip_annoying_messages(record):
         'POST /api/sendInstruction/',
 		'GET /api/allGames/',
 		'POST /api/stayAlive/',
+        'POST /api/newGame/',
+        'POST /api/validPlay/',
         'GET /api/selectBestHandToPlay/',
+
 	)
     if record.args[0].startswith(annoying_messages):  # filter whatever you want
         return False

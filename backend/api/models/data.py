@@ -27,12 +27,12 @@ class Games:
       'spectators': []
     }
 
-    if game['id'].startswith('HUMAN_VS_AI'): # need to refactor AI life eventually
+    if game['id'].startswith('1vAI_'): # need to refactor AI life eventually
       game['players'] = [
         { 'id': newGame['p1']['id'], 'name': newGame['p1']['name'], 'life': self.startingLife },
         { 'id': newGame['p2']['id'], 'name': newGame['p2']['name'], 'life': 999999999999 },
       ]
-    elif game['id'].startswith('AI_VS_AI'):
+    elif game['id'].startswith('AIvAI_'):
       game['players'] = [
         { 'id': newGame['p1']['id'], 'name': newGame['p1']['name'], 'life': 999999999999 },
         { 'id': newGame['p2']['id'], 'name': newGame['p2']['name'], 'life': 999999999999 },
@@ -82,9 +82,10 @@ class Games:
   def fetchInstruction(self, game_id):
     # when clients poll for instruction, retrieve both the instruction and the game object
     instruction = [i for i in self.instructions if i['game_id'] == game_id]
+    game = [i for i in self.games if i['id'] == game_id]
     return {
       'instruction': instruction[0] if instruction != [] else None,
-      'game': [i for i in self.games if i['id'] == game_id][0],
+      'game': game[0] if game else None,
     }
 
   def joinGame(self, gameInfo):
@@ -107,8 +108,8 @@ class Games:
       for j in range(len(self.games[i]['players'])):
         self.games[i]['players'][j]['life'] -= 1
         game = self.games[i]
-        # if players have disconnected for too long, or if there are no spectators in AI_VS_AI, delete game.
-        if game['players'][j]['life'] == 0 or game['id'].startswith('AI_VS_AI') and game['spectators'] == []:
+        # if players have disconnected for too long, or if there are no spectators in AIvAI_, delete game.
+        if game['players'][j]['life'] == 0 or game['id'].startswith('AIvAI_') and game['spectators'] == []:
           game_ids_to_delete.append(self.games[i]['id']) # probably should not delete the game right away but let's work on this later
       for j in range(len(self.games[i]['spectators'])):
         self.games[i]['spectators'][j]['life'] -= 1

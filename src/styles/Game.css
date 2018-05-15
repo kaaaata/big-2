@@ -2,10 +2,15 @@
   width: 800px;
   height: 600px; }
 
-.game .title {
-  text-align: center;
-  font-size: 48px;
-  height: 45px; }
+.game .header {
+  width: 100%;
+  height: 50px;
+  padding: 10px;
+  display: flex;
+  justify-content: space-between; }
+  .game .header .title {
+    text-align: center;
+    font-size: 48px; }
 .game .player {
   text-align: center;
   font-size: 36px; }
