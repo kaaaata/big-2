@@ -91,15 +91,13 @@ class aiTestCase(SimpleTestCase):
 
   def test_minimax(self):
     # simple case
-    p1 = [31, 71]
-    p2 = [51, 61]
+    # p1 = [31, 32]
+    # p2 = [41, 81]
 
     # complex case
-    # p1 = [31, 32, 61, 62, 73, 90, 92, 140]
-    # p2 = [41, 42, 51, 52, 70, 91, 93, 141]
+    p1 = [31, 32, 61, 62, 73, 90]
+    p2 = [41, 42, 51, 52, 70, 91]
     minimax_tree = minimax.Node(p1, p2, [], 'p1')
     self.assertEqual(minimax_tree.score, 0)
     print('--> minimax tree got created')
-
-    minimax_tree.set_children()
-    print('# nodes:', minimax_tree.count_nodes())
+    print('best hand to play:', minimax.select_best_hand_to_play(p1, p2, [], 'p1'))

@@ -77,11 +77,11 @@ export default class Big2Game {
 
   async aiTurn(player) {
     if (this.game_id.startsWith('1vAI_') || this.game_id.startsWith('AIvAI_')) {
-      await this.wait(1000);
+      await this.wait(1500);
       const state = {
         hand: JSON.stringify(this.hands[player].big2Ranks()),
         table: JSON.stringify(this.table.big2Ranks()),
-        opponentCards: this.hands[player.id === this.p2.id ? this.p1 : this.p2].cards.length,
+        opponentCards: JSON.stringify(this.hands[player.id === this.p2.id ? this.p1 : this.p2].big2Ranks()),
         aggression: 2,
       };
       const bestHandToPlay = await django.get('selectBestHandToPlay', state);

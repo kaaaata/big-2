@@ -129,12 +129,18 @@ class Ai:
 
   def selectBestHandToPlay(self, hand, table, opponentCards, aggression):
     # select theoretical best hand to play given hand, table, opponentCards, aggression
-    # 1. get all possible plays in order from smallest to largest (possible play = can play and beat table)
-    # 2. assign each play a value based on its power and its disruption
+    # 1. if the hands are small enough, use minimax
+    # 2. otherwise, get all possible plays in order from smallest to largest (possible play = can play and beat table)
+    # 3. assign each play a weight based on its power and its disruption and choose the best one (highest weight)
 
     # 'slam jam it' if AI can win this turn
     if not table and gameplay.parseHand(hand):
       return hand
+
+    print('current table', table)
+    # use minimax if hands are small enough
+    if len(hand) + len(opponentCards) <= 12:
+      return minimax.select_best_hand_to_play(hand, opponentCards, table, 'p1')
 
     # generate all the possibile hands, put a disruption value on each hand, and pick the optimal one based on given parameters
     # hands are ordered from lowest strength to highest strength
@@ -143,7 +149,7 @@ class Ai:
     # print hand and all possibilities of that hand
     # print('hand: ', hand)
     # print(possibilities)
-    return [] if not possibilities else (max(possibilities, key = lambda x: x['weight'])['cards'] if aggression <= opponentCards and aggression <= len(hand) else possibilities[len(possibilities) - 1]['cards'])
+    return [] if not possibilities else (max(possibilities, key = lambda x: x['weight'])['cards'] if aggression <= len(opponentCards) or aggression <= len(hand) else possibilities[len(possibilities) - 1]['cards'])
 
 ai = Ai()
 
