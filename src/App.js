@@ -4,7 +4,7 @@ import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 // import * as actions from './redux/actions';
 // import store from './redux/store';
-import styled from 'styled-components';
+// import styled from 'styled-components';
 
 import Home from './Home';
 import Game from './Game';

@@ -77,7 +77,7 @@ export default class Big2Game {
 
   async aiTurn(player) {
     if (this.game_id.startsWith('1vAI_') || this.game_id.startsWith('AIvAI_')) {
-      await this.wait(1500);
+      await this.wait(1000);
       const state = {
         hand: JSON.stringify(this.hands[player].big2Ranks()),
         table: JSON.stringify(this.table.big2Ranks()),
@@ -97,6 +97,7 @@ export default class Big2Game {
     // make AI play against each other, or make it P1's turn
     while (!this.gameover) {
       await this.aiTurn(this.p1);
+      if (this.gameover) break;
       await this.aiTurn(this.p2);
     }
   }
