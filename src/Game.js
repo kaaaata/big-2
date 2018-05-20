@@ -132,15 +132,16 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Game extends C
           <article className="title">
             {game.players[0].name} vs. {game.players[1].name}
           </article>
-          <article>
-            {}
-          </article>        
         </section>
 
         <article className="player top">{opponent || 'waiting for player...'} ({p2_wins} wins)</article>
         <article className="client">
           <link rel="stylesheet" href="example.css" />
-          <div id="container"></div>
+          <div id="container" style={{
+            background: game.turn === 'p1'
+              ? 'linear-gradient(to bottom, rgba(255, 255, 255, 0.5) 60%, rgba(255, 255, 0, 0.5))'
+              : 'linear-gradient(to top, rgba(255, 255, 255, 0.5) 60%, rgba(255, 255, 0, 0.5))'
+          }} />
         </article>
         <article className="player bottom">{player.name} ({p1_wins} wins)</article>
       </section>

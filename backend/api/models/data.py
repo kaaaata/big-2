@@ -24,7 +24,8 @@ class Games:
       'p2_hand': deck[18:36],
       'active_cards': [],
       'table': [],
-      'spectators': []
+      'turn': 'p1',
+      'spectators': [],
     }
 
     if game['id'].startswith('1vAI_'): # need to refactor AI life eventually
@@ -68,6 +69,7 @@ class Games:
           game['table'] = cards
           game[hand] = [i for i in game[hand] if i not in cards]
           game['active_cards'] = [i for i in game['active_cards'] if i not in cards]
+          game['turn'] = 'p2' if hand == 'p1_hand' else 'p1'
         elif action == 'new_game':
           deck = gameplay.generateRandomDeck()
           game['p1_hand'] = deck[:18]
