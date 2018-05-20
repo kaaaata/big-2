@@ -137,7 +137,7 @@ class Ai:
     if not table and gameplay.parseHand(hand):
       return hand
 
-    print('current table', table)
+    # print('current table', table)
     # use minimax if hands are small enough
     if len(hand) + len(opponentCards) <= 12:
       return minimax.select_best_hand_to_play(hand, opponentCards, table, 'p1')

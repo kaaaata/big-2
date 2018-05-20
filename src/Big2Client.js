@@ -1,4 +1,4 @@
-import * as django from './serverWrappers';
+import * as django from './httpClient';
 import shortid from 'shortid';
 
 import Big2Hand from './Big2Hand';

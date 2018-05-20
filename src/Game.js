@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import * as actions from './redux/actions';
-import * as django from './serverWrappers';
+import * as django from './httpClient';
 import { Button } from 'reactstrap';
 
 import Big2Client from './Big2Client';
