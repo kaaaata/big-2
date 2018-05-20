@@ -72,6 +72,6 @@ def select_best_hand_to_play(p1, p2, table, turn):
     new_hand = max(minimax_tree.children, key = lambda x: x.score).p1
   elif minimax_tree.turn == 'p2':
     current_hand = minimax_tree.p2
-    new_hand = min(minimax_tree.children, key = lambda x: x.score).p2
+    new_hand = max(minimax_tree.children, key = lambda x: x.score).p2
   return [i for i in current_hand if i not in new_hand]
   
