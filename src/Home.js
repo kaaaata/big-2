@@ -43,13 +43,13 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Home extends C
       newGame = {
         id: '1vAI_' + shortid.generate(),
         p1: player,
-        p2: { id: shortid.generate(), name: 'Cat-Bot 2000' },
+        p2: { id: shortid.generate(), name: 'AI' },
       };
     } else if (button === 'AI vs. AI') {
       newGame = {
         id: 'AIvAI_' + shortid.generate(),
-        p1: { id: shortid.generate(), name: 'Cat-Bot 2000' },
-        p2: { id: shortid.generate(), name: 'Cat-Bot 2000' },
+        p1: { id: shortid.generate(), name: 'AI' },
+        p2: { id: shortid.generate(), name: 'AI' },
         spectator: player,
       };
     }

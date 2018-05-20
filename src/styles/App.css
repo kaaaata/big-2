@@ -31,4 +31,5 @@ button {
     background-image: url("../assets/felt.jpg");
     background-size: cover;
     opacity: 0.5;
+    filter: alpha(opacity=50);
     z-index: -1; }

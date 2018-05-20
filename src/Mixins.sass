@@ -1,0 +1,46 @@
+// mixin inspiration:
+// http://zerosixthree.se/8-sass-mixins-you-must-have-in-your-toolbox/
+// https://gist.github.com/mirisuzanne/1607696
+// http://coderesponsible.com/useful-sass-mixins/
+  
+=keyframes($animation-name)
+  @-webkit-keyframes #{$animation-name}
+    @content
+  @-moz-keyframes #{$animation-name}
+    @content
+  @-ms-keyframes #{$animation-name}
+    @content
+  @-o-keyframes #{$animation-name}
+    @content
+  @keyframes #{$animation-name}
+    @content
+
+=animation($str)
+  -webkit-animation: #{$str}
+  -moz-animation: #{$str}
+  -ms-animation: #{$str}
+  -o-animation: #{$str}
+  animation: #{$str}
+
+=transition($args...)
+  -webkit-transition: $args
+  -moz-transition: $args
+  -ms-transition: $args
+  -o-transition: $args
+  transition: $args
+
+=opacity($opacity)
+  opacity: $opacity
+  $opacity-ie: $opacity * 100
+  filter: alpha(opacity=$opacity-ie)
+
+=linearGradient($top, $bottom)
+  background: $top
+  background: -moz-linear-gradient(top, $top 0%, $bottom 100%)
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, $top), color-stop(100%, $bottom))
+  background: -webkit-linear-gradient(top, $top 0%, $bottom 100%)
+  background: -o-linear-gradient(top, $top 0%, $bottom 100%)
+  background: -ms-linear-gradient(top, $top 0%, $bottom 100%)
+  background: linear-gradient(to bottom, $top 0%, $bottom 100%)
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#000000', GradientType=0)
+  

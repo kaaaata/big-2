@@ -132,6 +132,9 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Game extends C
           <article className="title">
             {game.players[0].name} vs. {game.players[1].name}
           </article>
+          <article className="blank">
+            {/* for flexbox justify-content: space-between */}
+          </article>
         </section>
 
         <article className="player top">{opponent || 'waiting for player...'} ({p2_wins} wins)</article>
