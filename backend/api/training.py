@@ -1,8 +1,8 @@
 ### inputs ###
 training_parameters = {
-  'repetitions': 25,
-  'min_aggression': 0,
-  'max_aggression': 4,
+  'repetitions': 1,
+  'min_aggression': 2,
+  'max_aggression': 2,
 }
 ######
 
@@ -12,7 +12,7 @@ import time
 
 from models import ai
 
-test_ai = ai._ai()
+test_ai = ai.Ai()
 
 start_time = time.time()
 test_ai.runTraining(training_parameters)

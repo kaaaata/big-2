@@ -58,12 +58,12 @@ def select_best_hand_to_play(p1, p2, table, turn):
   minimax_tree = Node(p1, p2, table, turn)
   set_children(minimax_tree)
 
-  print('# nodes:', count_nodes(minimax_tree))
-  print('table:', minimax_tree.table)
+  # print('# nodes:', count_nodes(minimax_tree))
+  # print('table:', minimax_tree.table)
 
   # if terminal node, or player must pass, play nothing
   if not minimax_tree.children or minimax_tree.turn != turn:
-    print('pass')
+    # print('pass')
     return []
 
   # otherwise, use minimax scoring system to determine the best hand to play

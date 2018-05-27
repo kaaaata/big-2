@@ -15,6 +15,12 @@ export default class Big2Hand {
     return this.cards.filter(filter_cb).map(item => item.big2rank);
   }
 
+  faceUp() {
+    this.cards.forEach(card => {
+      card.setSide('front');
+    });
+  }
+
   activate(big2ranks) {
     this.cards.forEach(card => {
       if (big2ranks.includes(card.big2rank)) card.activate();

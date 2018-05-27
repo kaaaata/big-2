@@ -54,7 +54,7 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Home extends C
       };
     }
     const game = await django.post('newGame', newGame);
-
+    
     setGame(game);
     this.setState({ redirect: true });
   }
@@ -121,7 +121,7 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Home extends C
               Join Game
             </DropdownToggle>
             <DropdownMenu className="games-dropdown" right>
-              {games.map(game => (
+              {games.filter(game => !game.id.startsWith('1vAI_') && !game.id.startsWith('AIvAI_')).map(game => (
                 <DropdownItem key={game.id} onClick={() => this.joinGame(game.id)}>
                   {game.players[0].name}'s Game
                 </DropdownItem>  

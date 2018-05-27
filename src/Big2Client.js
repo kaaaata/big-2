@@ -55,6 +55,7 @@ export default class Big2Game {
       if (this.table.cards.length) this.table.fadeOut();
       this.table = new Big2Hand(this.hands[player].playActiveCards());
       this.table.render('table');
+      this.table.faceUp();
       this.hands[player].render();
       if (!this.hands[this.p1].cards.length) {
         this.gameover = true;
@@ -109,7 +110,7 @@ export default class Big2Game {
         card.unmount();
       });
     }
-    this.deck = window.Deck(); console.log('Deck: ', this.deck);
+    this.deck = window.Deck(); // console.log('Deck: ', this.deck);
     this.deck.mount(this.$container);
 
     this.deck.cards.forEach(card => {
@@ -151,7 +152,6 @@ export default class Big2Game {
       };
       card.activate = () => card.animate('activate');
       card.$el.onclick = async() => {
-        console.log(card)
         if (!this.spectating) await this.newInstruction('activate', [card.big2rank]);
       };
     });
@@ -207,9 +207,17 @@ export default class Big2Game {
     this.table.render('table', 1000, this.spectating);
 
     // turn dealt cards face-up, and move rest of cards to trash
+    this.table.faceUp();
+    if (this.spectating) {
+      this.hands[this.p1].faceUp();
+    } else {
+      this.hands[this.you].faceUp();
+    }
     this.deck.cards.forEach((card, index) => {
-      if (this.table.has(card) || this.hands[this.p1].has(card) || this.hands[this.p2].has(card)) {
-        card.setSide('front');
+      if (this.hands[this.p1].has(card) || this.hands[this.p2].has(card) || this.table.has(card)) {
+        if (this.game_id.startsWith('AIvAI_')) {
+          card.setSide('front');
+        }
       } else {
         card.animate('trash', card.x, index, 1000, this.spectating);
       }

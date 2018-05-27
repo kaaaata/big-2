@@ -14,7 +14,6 @@ const mapStateToProps = (state) => ({
   games: state.default.games,
 });
 const mapDispatchToProps = (dispatch) => ({
-  syncGames: (games) => dispatch(actions.syncGames(games)),
   setGame: (game) => dispatch(actions.setGame(game)),
 });
 
@@ -37,21 +36,22 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Game extends C
   }
 
   async componentDidMount() {
-    const { player, syncGames, setGame } = this.props;
+    const { player, setGame } = this.props;
     // const { game, games } = this.props creates a strange bug where { game, games } does not reflect updates in redux store.
 
     // keep the game alive
     this.setState({ interval: setInterval(async() => {
       await django.post('stayAlive', player.id);
       await django.post('stayAlive', 'dummy id'); // keep the dummy player alive for development
-      syncGames(await django.get('allGames'));
       setGame(this.props.games.filter(item => item.id === this.props.game.id)[0]);
     }, 1000) });
 
     // start a game when a new player joins the P2 slot
     while (true) {
       await this.wait(1000);
-      if (this.props.game.players.length === 2) {
+      const game = (await django.get('allGames')).filter(item => item.id === this.props.game.id)[0];
+      if (game.players.length === 2) {
+        setGame(game);
         this.newGame();
         break;
       }
@@ -72,13 +72,13 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Game extends C
       : null;
     while (true) {
       // server ping tick frequency
-      await this.wait(100);
+      await this.wait(50);
       // pull down instruction from server
       const output = await django.get('fetchInstruction', { game_id: game.id });
       instruction = output.instruction;
       // if instruction hasn't been already processed, process it
       if (instruction && (instruction.id !== lastInstruction_id || !lastInstruction_id)) {
-        console.log(instruction.action);
+        // console.log(instruction.action);
         // if a player wins, do this...
         if (instruction.action === 'p1_wins' || instruction.action === 'p2_wins') {
           // put something here to determine whether a new game should be booted up
@@ -115,6 +115,7 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Game extends C
     const opponent = players[1]
       ? (players[1].id === player.id ? players[0].name : players[1].name)
       : null;
+    const spectating = player.id !== game.players[0].id && player.id !== game.players[1].id;
     
     return (
       <section className="game">
@@ -130,7 +131,7 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Game extends C
             </Link>
           </article>
           <article className="title">
-            {game.players[0].name} vs. {game.players[1].name}
+            {game.players[0].name} vs. {game.players[1] ? game.players[1].name : '...'}
           </article>
           <article className="blank">
             {/* for flexbox justify-content: space-between */}
@@ -142,8 +143,12 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Game extends C
           <link rel="stylesheet" href="example.css" />
           <div id="container" style={{
             background: game.turn === 'p1'
-              ? 'linear-gradient(to bottom, rgba(255, 255, 255, 0.5) 60%, rgba(255, 255, 0, 0.5))'
-              : 'linear-gradient(to top, rgba(255, 255, 255, 0.5) 60%, rgba(255, 255, 0, 0.5))'
+              ? player.id === game.players[0].id || spectating
+                ? 'linear-gradient(to bottom, rgba(255, 255, 255, 0.4) 60%, rgba(255, 255, 0, 0.4))'
+                : 'linear-gradient(to top, rgba(255, 255, 255, 0.4) 60%, rgba(255, 255, 0, 0.4))'
+              : player.id === game.players[0].id || spectating
+                ? 'linear-gradient(to top, rgba(255, 255, 255, 0.4) 60%, rgba(255, 255, 0, 0.4))'
+                : 'linear-gradient(to bottom, rgba(255, 255, 255, 0.4) 60%, rgba(255, 255, 0, 0.4))'
           }} />
         </article>
         <article className="player bottom">{player.name} ({p1_wins} wins)</article>

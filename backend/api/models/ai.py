@@ -37,6 +37,7 @@ class Ai:
     return True
     
   def train(self, aggression_i, aggression_j):
+    print('training 1 game');
     # run one AI training game (only to be called from self.runTraining)
 
     # initialize game
@@ -51,12 +52,12 @@ class Ai:
 
     # run the 'game'
     while True:
-      table = self.selectBestHandToPlay(i_hand, table, len(j_hand), aggression_i)
+      table = self.selectBestHandToPlay(i_hand, table, j_hand, aggression_i)
       i_hand = [i for i in i_hand if i not in table]
       if not i_hand:
         self.wins[aggression_i] += 1
         break
-      table = self.selectBestHandToPlay(j_hand, table, len(i_hand), aggression_j)
+      table = self.selectBestHandToPlay(j_hand, table, i_hand, aggression_j)
       j_hand = [i for i in j_hand if i not in table]
       if not j_hand:
         self.wins[aggression_j] += 1
