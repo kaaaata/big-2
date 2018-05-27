@@ -21,4 +21,4 @@ Key file locations:
 Parameters for AI training (edit before npm run training): backend/api/training.py  
   
 To-do:  
-Deployment  
+Deployment (need env)  
