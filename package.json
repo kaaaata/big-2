@@ -8,6 +8,7 @@
   "proxy": "http://localhost:3001",
   "scripts": {
     "server-dev": "python3 backend/manage.py runserver 0:3001",
+    "server-prod": "python3 backend/manage.py runserver 0.0.0.0:$PORT",
     "sass-dev": "sass --watch src:src/styles --sourcemap=none",
     "test-backend": "python3 backend/manage.py test backend -v 2",
     "training": "python3 backend/api/training.py",
