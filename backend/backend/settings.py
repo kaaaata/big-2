@@ -119,7 +119,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = 'staticfiles' # for django collectstatic
-ALLOWED_HOSTS = ['big2app.herokuapp.com'] # allow heroku to host the app
+ALLOWED_HOSTS = ['big2app.herokuapp.com', 'localhost'] # allow heroku to host the app
 
 # Below this line are custom settings
 def skip_annoying_messages(record):

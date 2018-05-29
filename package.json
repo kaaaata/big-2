@@ -18,7 +18,8 @@
     "eject": "react-scripts eject"
   },
   "engines": {
-    "node": ">=8.10.0"
+    "node": "8.10.0",
+    "npm": "6.0.1"
   },
   "dependencies": {
     "ajv": "^6.0.0",
