@@ -5,7 +5,6 @@
   "author": "Catherine Han",
   "license": "",
   "private": true,
-  "proxy": "http://localhost:3001",
   "scripts": {
     "server-dev": "python3 backend/manage.py runserver 0:3001",
     "server-prod": "python3 backend/manage.py runserver 0.0.0.0:$PORT",
