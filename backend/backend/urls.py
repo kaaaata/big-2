@@ -19,5 +19,6 @@ from django.urls import include, path
 
 urlpatterns = [
   path('admin/', admin.site.urls),
-  path('api/', include('api.urls')),
+  path('api/', include('api.urls')), # dev server
+  path('/', include('api.urls')), # heroku prod server
 ]
