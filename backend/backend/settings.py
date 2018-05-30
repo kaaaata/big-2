@@ -129,6 +129,7 @@ STATICFILES_DIRS = [
 ]
 STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
+CSRF_COOKIE_NAME = "csrftoken"
 CORS_ORIGIN_ALLOW_ALL = True # django-cors-headers
 
 # Below this line are custom settings
