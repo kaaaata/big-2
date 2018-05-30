@@ -4,7 +4,6 @@
   "description": "Big 2",
   "author": "Catherine Han",
   "license": "",
-  "proxy": "https://big2app.herokuapp.com/",
   "private": true,
   "scripts": {
     "server-dev": "python3 backend/manage.py runserver 0:3001",
