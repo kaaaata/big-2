@@ -1,6 +1,9 @@
 import axios from 'axios';
 import qs from 'qs';
 
+axios.defaults.xsrfCookieName = 'csrftoken';
+axios.defaults.xsrfHeaderName = 'X-CSRFToken';
+
 export const get = async(route, params = null) => {
   const headers = {
     'X-CSRFToken': document.cookie.replace('csrftoken=', ''),
