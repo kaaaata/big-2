@@ -25,7 +25,7 @@ SECRET_KEY = 'rml9u!@7g2aoqp_g42x(n5dpq2bn2rju=&7+f-d4&qt7mu=$31'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['big2app.herokuapp.com', '127.0.0.1:8000', 'localhost']
+ALLOWED_HOSTS = ['big2app.herokuapp.com', 'localhost']
 
 
 # Application definition
@@ -120,10 +120,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = 'staticfiles' # for django collectstatic
+STATIC_ROOT = os.path.join(BASE_DIR, 'static') # for django collectstatic
 STATICFILES_DIRS = [
   os.path.join(BASE_DIR, '../build/static'),
 ]
+STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
 # Below this line are custom settings
 def skip_annoying_messages(record):

@@ -3,3 +3,4 @@ django-filter==1.1.0
 djangorestframework==3.8.2
 pytz==2018.4
 gunicorn==19.8.1
+whitenoise==3.3.1
