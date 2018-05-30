@@ -25,7 +25,7 @@ SECRET_KEY = 'rml9u!@7g2aoqp_g42x(n5dpq2bn2rju=&7+f-d4&qt7mu=$31'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['big2app.herokuapp.com', '127.0.0.1:8000', , '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['big2app.herokuapp.com', '127.0.0.1:8000', '127.0.0.1', 'localhost']
 
 
 # Application definition
