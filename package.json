@@ -4,14 +4,15 @@
   "description": "Big 2",
   "author": "Catherine Han",
   "license": "",
+  "proxy": "http://localhost:3001",
   "private": true,
   "scripts": {
     "server-dev": "python3 backend/manage.py runserver 0:3001",
-    "server-prod": "python3 backend/manage.py runserver 0.0.0.0:$PORT",
+    "server-prod": "gunicorn -b 0.0.0.0:3001 --chdir backend backend.wsgi",
     "sass-dev": "sass --watch src:src/styles --sourcemap=none",
     "test-backend": "python3 backend/manage.py test backend -v 2",
     "training": "python3 backend/api/training.py",
-    "start": "react-scripts start",
+    "start": "PORT=3000 react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
