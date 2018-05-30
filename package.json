@@ -7,7 +7,7 @@
   "private": true,
   "scripts": {
     "server-dev": "python3 backend/manage.py runserver 0:3001",
-    "server-prod": "gunicorn -b 0.0.0.0:$PORT --chdir backend backend.wsgi",
+    "server-prod": "gunicorn --chdir backend backend.wsgi",
     "sass-dev": "sass --watch src:src/styles --sourcemap=none",
     "test-backend": "python3 backend/manage.py test backend -v 2",
     "training": "python3 backend/api/training.py",
