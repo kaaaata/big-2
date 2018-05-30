@@ -4,15 +4,15 @@
   "description": "Big 2",
   "author": "Catherine Han",
   "license": "",
-  "proxy": "http://localhost:3001",
+  "proxy": "https://big2app.herokuapp.com/",
   "private": true,
   "scripts": {
     "server-dev": "python3 backend/manage.py runserver 0:3001",
-    "server-prod": "gunicorn -b 0.0.0.0:3001 --chdir backend backend.wsgi",
+    "server-prod": "gunicorn -b 0.0.0.0:$PORT --chdir backend backend.wsgi",
     "sass-dev": "sass --watch src:src/styles --sourcemap=none",
     "test-backend": "python3 backend/manage.py test backend -v 2",
     "training": "python3 backend/api/training.py",
-    "start": "PORT=3000 react-scripts start",
+    "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
