@@ -140,7 +140,6 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Game extends C
 
         <article className="player top">{opponent || 'waiting for player...'} ({p2_wins} wins)</article>
         <article className="client">
-          <link rel="stylesheet" href="example.css" />
           <div id="container" style={{
             background: game.turn === 'p1'
               ? player.id === game.players[0].id || spectating

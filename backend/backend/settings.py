@@ -25,7 +25,7 @@ SECRET_KEY = 'rml9u!@7g2aoqp_g42x(n5dpq2bn2rju=&7+f-d4&qt7mu=$31'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['big2app.herokuapp.com', '127.0.0.1:8000', 'localhost']
 
 
 # Application definition
@@ -54,7 +54,9 @@ ROOT_URLCONF = 'backend.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            os.path.join(BASE_DIR, '../build') # for react-scripts build
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -119,6 +121,9 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = 'staticfiles' # for django collectstatic
+STATICFILES_DIRS = [
+  os.path.join(BASE_DIR, '../build/static'),
+]
 
 # Below this line are custom settings
 def skip_annoying_messages(record):

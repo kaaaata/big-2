@@ -15,10 +15,11 @@ Including another URLconf
 """
 # default boilerplate commented below this line
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import include, path, re_path
+from django.views.generic import TemplateView
 
 urlpatterns = [
   path('admin/', admin.site.urls),
   path('api/', include('api.urls')), # dev server
-  path('http://big2app.herokuapp.com/', include('api.urls')), # heroku prod server
+  re_path('.*', TemplateView.as_view(template_name='index.html')),
 ]

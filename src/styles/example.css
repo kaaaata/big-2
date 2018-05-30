@@ -1,4 +1,4 @@
-* {
+/* * {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
@@ -65,7 +65,7 @@ body {
   padding: 1rem 0.5rem;
   font-size: 0.5rem;
   text-align: center;
-}
+} */
 .card {
   position: absolute;
   display: inline-block;
@@ -365,7 +365,7 @@ body {
 .card.joker.rank3 .face {
   background-image: url("faces/4_3.svg");
 }
-@media (max-width: 540px) {
+/* @media (max-width: 540px) {
   #topbar {
     text-align: left;
   }
@@ -386,4 +386,4 @@ body {
   html {
     font-size: 125%;
   }
-}
+} */
