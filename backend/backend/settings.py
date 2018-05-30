@@ -37,12 +37,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'corsheaders', # django-cors-headers
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware', # django-cors-headers
-    'django.middleware.common.CommonMiddleware', # django-cors-headers
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -129,8 +126,8 @@ STATICFILES_DIRS = [
 ]
 STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
-# CSRF_COOKIE_NAME = "csrftoken"
-CORS_ORIGIN_ALLOW_ALL = True # django-cors-headers
+CSRF_COOKIE_NAME = "csrftoken"
+CSRF_COOKIE_SECURE = False
 
 # Below this line are custom settings
 def skip_annoying_messages(record):
