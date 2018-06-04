@@ -9,7 +9,7 @@ class Games:
   def __init__(self):
     self.games = []
     self.instructions = []
-    self.startingLife = 3
+    self.startingLife = 7
 
   def newGame(self, newGame):
     # initialize a new game with one player in the p1 slot, returning the newly created game object
