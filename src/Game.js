@@ -50,7 +50,7 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Game extends C
     while (true) {
       await this.wait(1000);
       const game = (await django.get('allGames')).filter(item => item.id === this.props.game.id)[0];
-      if (game.players.length === 2) {
+      if (game && game.players.length === 2) {
         setGame(game);
         this.newGame();
         break;
