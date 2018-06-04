@@ -78,7 +78,7 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Game extends C
       instruction = output.instruction;
       // if instruction hasn't been already processed, process it
       if (instruction && (instruction.id !== lastInstruction_id || !lastInstruction_id)) {
-        // console.log(instruction.action);
+        console.log(instruction.action);
         // if a player wins, do this...
         if (instruction.action === 'p1_wins' || instruction.action === 'p2_wins') {
           // put something here to determine whether a new game should be booted up
