@@ -28,10 +28,10 @@ export const get = async(route, params = null) => {
   
   return (
     (await axios.get(
-      `api/${route}/`,
+      `/${route}`,
       { params, 'paramsSerializer': parameters => qs.stringify(parameters) },
       { headers },
-    )).data.res
+    )).data
   );
 };
 
@@ -42,9 +42,9 @@ export const post = async(route, body) => {
 
   return (
     (await axios.post(
-      `api/${route}/`,
-      JSON.stringify(body),
+      `/${route}`,
+      body,
       { headers },
-    )).data.res
+    )).data
   );
 };

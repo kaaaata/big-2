@@ -6,7 +6,7 @@ Spectator mode
 AI training script using reinforcement learning to reveal optimal AI parameters  
   
 Stack:  
-Backend:  Django 2 (Python 3)  
+Backend:  Node.js (Express)  
 Frontend:  React, Redux, Sass, Reactstrap  
   
 Bootstrapping Instructions:  
@@ -22,3 +22,5 @@ Parameters for AI training (edit before npm run training): backend/api/training.
   
 To-do:  
 Deployment (need env)  
+Make API RESTful  
+Optimize JavaScript files that were hastily translated from Python 3  

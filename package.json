@@ -1,20 +1,19 @@
 {
   "name": "big-2",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "description": "Big 2",
   "author": "Catherine Han",
   "license": "",
   "private": true,
+  "proxy": "http://localhost:3001",
   "scripts": {
-    "server-dev": "python3 backend/manage.py runserver 0:3001",
-    "server-prod": "gunicorn --chdir backend backend.wsgi",
-    "migrate": "python3 backend/manage.py migrate",
+    "server-dev": "nodemon --inspect server/index.js",
     "sass-dev": "sass --watch src:src/styles --sourcemap=none",
-    "test-backend": "python3 backend/manage.py test backend -v 2",
-    "training": "python3 backend/api/training.py",
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test --env=jsdom",
+    "test": "mocha",
+    "test-create-react-app": "react-scripts test --env=jsdom",
+    "training": "node models/training.js",
     "eject": "react-scripts eject",
     "postinstall": "npm run build"
   },
@@ -25,18 +24,24 @@
   "dependencies": {
     "ajv": "^6.0.0",
     "axios": "^0.17.1",
+    "body-parser": "^1.18.3",
     "bootstrap": "^4.0.0",
     "deck-of-cards": "^0.1.8",
+    "express": "^4.16.3",
     "qs": "^6.5.1",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
     "react-redux": "^5.0.7",
     "react-router": "^4.2.0",
     "react-router-dom": "^4.2.2",
-    "react-scripts": "1.1.1",
+    "react-scripts": "^1.1.4",
     "reactstrap": "^5.0.0-beta.3",
     "redux": "^3.7.2",
     "shortid": "^2.2.8",
     "styled-components": "^3.2.6"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "mocha": "^5.2.0"
   }
 }

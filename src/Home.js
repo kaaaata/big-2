@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Redirect } from 'react-router-dom';
 import { connect } from 'react-redux';
 import * as actions from './redux/actions';
-import * as django from './httpClient';
+import * as server from './httpClient';
 import shortid from 'shortid';
 import { Button, Form, FormGroup, Label, Input, Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 
@@ -53,20 +53,20 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Home extends C
         spectator: player,
       };
     }
-    const game = await django.post('newGame', newGame);
+    const game = await server.post('newGame', newGame);
     
     setGame(game);
     this.setState({ redirect: true });
   }
 
-  async joinGame(game_id) {
+  async joinGame(gameId) {
     const { setGame, player } = this.props;
     if (player.name === '') return alert('Please enter your name.');
     const gameInfo = {
-      game_id,
+      gameId,
       player,
     };
-    const game = await django.post('joinGame', gameInfo);
+    const game = await server.post('joinGame', gameInfo);
 
     setGame(game);
     this.setState({ redirect: true });
@@ -80,9 +80,9 @@ export default connect(mapStateToProps, mapDispatchToProps)(class Home extends C
     };
     
     setPlayer(newPlayer);
-    syncGames(await django.get('allGames'));
+    syncGames(await server.get('allGames'));
     this.setState({ interval: setInterval(async() => {
-      syncGames(await django.get('allGames'));
+      syncGames(await server.get('allGames'));
     }, 1000) });
   }
 

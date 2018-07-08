@@ -1,4 +1,4 @@
-import * as django from './httpClient';
+import * as server from './httpClient';
 import shortid from 'shortid';
 
 import Big2Hand from './Big2Hand';
@@ -11,7 +11,7 @@ export default class Big2Game {
     this.initDeckPropertiesAndMount();
 
     // game variables
-    this.game_id = game.id;
+    this.gameId = game.id;
     this.player1 = game.players[0]; this.player2 = game.players[1]; // assign entire player object to long variable
     this.p1 = this.player1.id; this.p2 = this.player2.id; // assign id to short variable for easy hand referencing
     this.you = you; // your player id
@@ -25,7 +25,7 @@ export default class Big2Game {
     this.table = null;
 
     // initalize games with given player hands and table state
-    this.initGame(game.p1_hand, game.p2_hand, game.table, game.active_cards);
+    this.initGame(game.p1Hand, game.p2Hand, game.table, game.activeCards);
   };
 
   wait(ms) {
@@ -39,19 +39,19 @@ export default class Big2Game {
   async newInstruction(action, cards = null, player = this.you) {
     const instruction = {
       id: shortid.generate(),
-      game_id: this.game_id,
+      gameId: this.gameId,
       player,
       action,
       cards,
     };
 
-    return await django.post('sendInstruction', instruction);
+    return await server.post('sendInstruction', instruction);
   }
 
   async readInstruction(instruction) {
     const { player, action, cards } = instruction;
 
-    if (action === 'play_active_cards') {
+    if (action === 'playActiveCards') {
       if (this.table.cards.length) this.table.fadeOut();
       this.table = new Big2Hand(this.hands[player].playActiveCards());
       this.table.render('table');
@@ -59,15 +59,15 @@ export default class Big2Game {
       this.hands[player].render();
       if (!this.hands[this.p1].cards.length) {
         this.gameover = true;
-        await this.newInstruction('p1_wins');
+        await this.newInstruction('p1Wins');
       } else if (!this.hands[this.p2].cards.length) {
         this.gameover = true;
-        await this.newInstruction('p2_wins');
+        await this.newInstruction('p2Wins');
       }
-      if (!this.game_id.startsWith('AIvAI_') && player !== this.you) this.gameActive = true;
+      if (!this.gameId.startsWith('AIvAI_') && player !== this.you) this.gameActive = true;
     } else if (action === 'activate') {
       this.hands[player].activate(cards);
-    } else if (action === 'deactivate_all_cards') {
+    } else if (action === 'deactivateAllCards') {
       this.hands[player].deactivateAllCards();
     } else if (action === 'pass') {
       this.hands[player].deactivateAllCards();
@@ -77,18 +77,18 @@ export default class Big2Game {
   }
 
   async aiTurn(player) {
-    if (this.game_id.startsWith('1vAI_') || this.game_id.startsWith('AIvAI_')) {
+    if (this.gameId.startsWith('1vAI_') || this.gameId.startsWith('AIvAI_')) {
       await this.wait(1000);
       const state = {
-        hand: JSON.stringify(this.hands[player].big2Ranks()),
-        table: JSON.stringify(this.table.big2Ranks()),
-        opponentCards: JSON.stringify(this.hands[player.id === this.p2.id ? this.p1 : this.p2].big2Ranks()),
-        aggression: 2,
+        hand: this.hands[player].big2Ranks(),
+        table: this.table.big2Ranks(),
+        opponentCards: this.hands[player.id === this.p2.id ? this.p1 : this.p2].big2Ranks(),
+        aggression: 2
       };
-      const bestHandToPlay = await django.get('selectBestHandToPlay', state);
+      const bestHandToPlay = await server.post('selectBestHandToPlay', state);
       await this.newInstruction('activate', bestHandToPlay, player);
       await this.wait(500);
-      await this.newInstruction('play_active_cards', null, player);
+      await this.newInstruction('playActiveCards', null, player);
       this.gameActive = true;
       return null;
     }
@@ -157,7 +157,7 @@ export default class Big2Game {
     });
   }
 
-  initGame(p1_hand, p2_hand, table, active_cards) {
+  initGame(p1Hand, p2Hand, table, activeCards) {
     // set keyboard events
     document.onkeyup = async(e) => {
 			if (this.gameActive) {
@@ -170,11 +170,11 @@ export default class Big2Game {
             table: this.table.cards.length > 0 ? this.table.big2Ranks() : null,
           };
 
-          if (await django.post('validPlay', play)) {
-            await this.newInstruction('play_active_cards');
+          if (await server.post('validPlay', play)) {
+            await this.newInstruction('playActiveCards');
             this.aiTurn(this.p2);
           } else {
-            await this.newInstruction('deactivate_all_cards');
+            await this.newInstruction('deactivateAllCards');
             this.gameActive = true;
           }
         } else if (e.keyCode === 80) {
@@ -184,14 +184,14 @@ export default class Big2Game {
         }
       } else {
         // deactivate all cards if you try to play something not on your turn
-        if (e.keyCode === 13 || e.keyCode === 80) await this.newInstruction('deactivate_all_cards');
+        if (e.keyCode === 13 || e.keyCode === 80) await this.newInstruction('deactivateAllCards');
       }
     };
 
     // initialize hands and table
     this.hands = {
-      [this.p1]: new Big2Hand(this.deck.cards.filter(card => p1_hand.includes(card.big2rank))),
-      [this.p2]: new Big2Hand(this.deck.cards.filter(card => p2_hand.includes(card.big2rank))),
+      [this.p1]: new Big2Hand(this.deck.cards.filter(card => p1Hand.includes(card.big2rank))),
+      [this.p2]: new Big2Hand(this.deck.cards.filter(card => p2Hand.includes(card.big2rank))),
     };
     this.table = new Big2Hand(this.deck.cards.filter(card => table.includes(card.big2rank)));
     
@@ -215,7 +215,7 @@ export default class Big2Game {
     }
     this.deck.cards.forEach((card, index) => {
       if (this.hands[this.p1].has(card) || this.hands[this.p2].has(card) || this.table.has(card)) {
-        if (this.game_id.startsWith('AIvAI_')) {
+        if (this.gameId.startsWith('AIvAI_')) {
           card.setSide('front');
         }
       } else {
@@ -226,10 +226,10 @@ export default class Big2Game {
     if (this.spectating) {
       setTimeout(() => {
         // activate all cards that were activated already
-        this.hands[this.p1].activate(active_cards);
-        this.hands[this.p2].activate(active_cards);
+        this.hands[this.p1].activate(activeCards);
+        this.hands[this.p2].activate(activeCards);
         // conditionally start AIvAI_ gameplay
-        if (this.game_id.startsWith('AIvAI_')) {
+        if (this.gameId.startsWith('AIvAI_')) {
           // only works for one spectator currently
           this.gameover = false;
           this.startAI();
